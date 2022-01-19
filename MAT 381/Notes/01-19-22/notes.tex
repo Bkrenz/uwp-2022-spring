@@ -1,0 +1,99 @@
+\documentclass[12pt]{article}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=15mm, top=20mm, right=15mm, bottom=20mm}
+
+% Fancy Header
+\usepackage{fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\pagestyle{fancy}
+\fancyhf{}
+\chead{CSC 360 - Analysis of Algorithms}
+\lfoot{CALU Fall 2021}
+\rfoot{RDK}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+\onehalfspacing
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\section*{Notes, Jan 19 '22}
+
+\subsection*{8.9 Improper Intgerals}
+
+There are typically two types of improper integrals:
+
+\begin{enumerate}
+
+    \item The interval of integration is infinite \\
+    $ \int_{1}^{\infty} \frac{1}{x^2} \,dx $
+
+    \item The integrand is unbounded on the interval of integration \\
+    $ \int_{-1}^{1} \frac{1}{x} \,dx $
+
+\end{enumerate}
+
+How do you find the integral $\int_{1}^{\infty} \frac{1}{x^2} \,dx$?
+
+Consider the integral $\int_{1}^{b} \frac{1}{x^2} \,dx$, where $b > 1$ is an arbitrary real number.
+
+Then we can write $\lim_{b\to\infty} \int_{1}^{b} \frac{1}{x^2} \,dx $
+
+Changing the infinity to a variable, and then taking the limit of the integral to infinity allows for a possible solution.
+
+\subsubsection*{Examples}
+
+\begin{itemize}
+
+    \item $ \int_{0}^{\infty} \frac{sin(x)}{x} \,dx = \lim_{b\to\infty} \int_{0}^{b} \frac{sin(x)}{x} \,dx $
+
+    \item $ \int_{-\infty}^{1} \frac{e^x}{x^2} \,dx = \lim{a\to\infty} \int_{a}^{1} \frac{e^x}{x^2} \,dx $
+
+\end{itemize}
+
+
+\subsubsection*{Example}
+
+Find, if possible: $ \int_{1}^{\infty} \frac{1}{x^2} \,dx $
+
+\begin{enumerate}
+
+    \item Rewrite as a limit \\ $\lim_{b\to\infty} \int_{1}^{b} \frac{1}{x^2} \,dx$
+
+    \item Solve the integral first: \\
+    \begin{equation*}
+        \int_{1}^{b} \frac{1}{x^2} \,dx \\ 
+        = -\frac{1}{x} \bigg\rvert_{1}^{b} \\
+        = -\frac{1}{b} + 1 
+    \end{equation*}
+
+    \item Then use that to find the limit: \\
+    \begin{equation*}
+        \lim_{b\to\infty} -\frac{1}{b} + 1 = -\frac{1}{\infty} + 1 = 0 + 1 = 1
+    \end{equation*}
+
+    \item Thus $ \int_{1}^{\infty} \frac{1}{x^2} \,dx = 1 $
+
+\end{enumerate}
+
+\end{document}
