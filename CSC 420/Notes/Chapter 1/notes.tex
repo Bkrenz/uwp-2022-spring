@@ -1,0 +1,116 @@
+\documentclass[12pt]{article}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=15mm, top=20mm, right=15mm, bottom=20mm}
+
+% Fancy Header
+\usepackage{fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\pagestyle{fancy}
+\fancyhf{}
+\chead{CSC 420 - Artificial Intelligence}
+\lfoot{CALU Spring 2022}
+\rfoot{RDK}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\section*{Notes, Chapter 1}
+
+\subsection*{Definition of AI}
+
+\begin{itemize}
+    \item ``The art of creating machines that perform functions that require intelligence when performed by people.'' - Kurzweil, 1990
+
+    \item ``The branch of computer science that is concerned with the automation of intelligent behavior.'' - Luger and Stublefield
+\end{itemize}
+
+
+\subsection*{Different Types of AI}
+
+\subsubsection*{Focuses}
+\begin{itemize}
+    \item Thought processes and reasoning
+    \item Intelligent Behavior - intelligent acts, such as a robot performing a task correctly
+\end{itemize}
+
+\subsubsection*{Two Dimensions of AI}
+\begin{itemize}
+    \item \definition{Human vs Rational:} Does an AI emulate human patterns and irrationality?
+    \item \definition{Thought vs Behavior:} Does it think or act?
+\end{itemize}
+
+\subsubsection*{Types of AI}
+\begin{itemize}
+    \item Systems that think like Humans
+    \item Systems that think rationally
+    \item Systems that act like Humans
+    \item Systems that act rationally
+\end{itemize}
+
+
+
+\subsection*{Acting Humanly: The Turing Test}
+
+A computer passes the test of a human tester, after posing some written questions, 
+if the human cannot tell whether the written responses come from a person or from a computer.
+
+A machine to model a human needs several capabilities:
+\begin{itemize}
+    \item \definition{Natural Language Processing:} to communicate successfully in a human language
+    \item \definition{Knowledge Representation:} to store what it knows or hears
+    \item \definition{Automated Reasoning:} to answer questions and draw a new conclusion
+    \item \definition{Machine Learning:} to adapt to new situations and to detect patterns
+\end{itemize}
+
+A \definition{Total Turing Test} requires interactions with the real world, necessitating additional requirements:
+\begin{itemize}
+    \item Computer vision and speech recognition to perceive the world
+    \item Robotics to manipulate objects and move about
+\end{itemize}
+
+
+\subsection*{Thinking Humanly: Cognitive Modelling}
+
+Cognitive Sciences is an interdisciplinary field consisting of fields like Artificial Intelligence, Psychology, Linguistics,
+Philosophy, and Anthropology that tries to form theories of human behavior and reasoning.
+
+\subsection*{Thikning Rationally: Laws of Thought}
+
+Reasoning using a mathematical model:
+\begin{itemize}
+    \item \definition{Logic:} encodes knowledge in formal logical statements and use mathematical deduction to perform reasoning
+    \item \definition{Probability:} the theory of Probability allows reasoning with uncertain information
+\end{itemize}
+
+\subsection*{Acting Rationally: Rational Agents}
+
+\begin{itemize}
+    \item An agent is an entity that perceives its environment and is able to execute actions to change it
+    \item Agents have inherent goals that they want to achieve
+    \item A rational agent acts in a way to maximize the achievement of its goals
+    \item True maximixation of goals requires techniques from multiple science and unlimited computational abilities
+    \item Limited rationality involves maximizing goals within the computational and other resources available
+\end{itemize}
+
+
+\end{document}

@@ -1,6 +1,9 @@
 ## Java
 .class
 
+## Ignore Folders for Assembly templates and examples
+Provided
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
