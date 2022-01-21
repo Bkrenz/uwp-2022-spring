@@ -1,0 +1,122 @@
+\documentclass[12pt]{article}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=15mm, top=20mm, right=15mm, bottom=20mm}
+
+% Fancy Header
+\usepackage{fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\pagestyle{fancy}
+\fancyhf{}
+\chead{CSC 455 - Structure of Programming Languages}
+\lfoot{CALU Fall 2021}
+\rfoot{RDK}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+\onehalfspacing
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\section*{Notes, Chapter 1}
+
+
+\subsection{Critera for Evaluating Languages}
+
+\begin{enumerate}
+    \item Readability
+    \item Writability
+    \item Reliability
+    \item Total Cost
+\end{enumerate}
+
+
+\subsection*{Readability}
+
+
+\subsection*{Writability}
+
+
+\subsection*{Reliability}
+
+\begin{itemize}
+    \item \definition{Reliability:} perform to specifications under all conditions
+    \item Type Checking
+    \begin{itemize}
+        \item Compile time \& Running time
+        \item Java: all checking in compile time
+        \item Original C: subprogram parameters, int vs float
+        \item Current C: all parameters are type checked
+    \end{itemize}
+    \item Exception handling
+    \item \definition{Aliasing}: Presence of two of more distinct referencing methods for the same memory location, e.g., pointers in C
+    \begin{itemize}
+        \item Aliasing can reduce Readability
+    \end{itemize}
+    \item Readability and Reliability
+    \begin{itemize}
+        \item A language that does not support ``natural'' ways of expressing an algorithm will require the use of ``unnatural'' approaches, and hence reduced Reliability
+        \item Readability affects reliability in both the writing and maintenance
+    \end{itemize}
+\end{itemize}
+
+
+\subsection*{Evaluation Criteria: Cost}
+
+\begin{itemize}
+    \item Training programmers to use the language
+    \item Writing programs (closeness to particular applications)
+    \item Compiling \& Executing programs
+    \begin{itemize}
+        \item Java vs C
+        \item Compilation optimization
+    \end{itemize}
+    \item Reliability: poor reliability leads to high costs
+    \item Maintaining programs
+\end{itemize}
+
+
+\subsection*{Evaluation Critera: Others}
+
+\begin{itemize}
+    \item \definition{Portability:}
+\end{itemize}
+
+
+\section*{Influences on Language Design}
+
+\begin{itemize}
+    \item Computer Architecture - Languages are developed around the prevalent computer archiecture, the Von Neumann Architecture.
+    \item Program Design Methodologies
+\end{itemize}
+
+
+\section*{Assignment}
+
+Pick a language you learned at CalU, and discuss its:
+\begin{enumerate}
+    \item its brief history
+    \item its readability, writability, and reliability
+    \item its implementation methods
+
+\end{document}
+
