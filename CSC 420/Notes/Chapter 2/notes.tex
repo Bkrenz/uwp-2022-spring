@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=15mm, top=20mm, right=15mm, bottom=20mm}
+
+% Fancy Header
+\usepackage{fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\pagestyle{fancy}
+\fancyhf{}
+\chead{CSC 420 - Artificial Intelligence}
+\lfoot{CALU Spring 2022}
+\rfoot{RDK}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\section*{Notes, Chapter 2}
+
+\subsection*{Agents and Environments}
+
+\begin{itemize}
+    \item An agent is anything that can be viewed as perceiving its environment through sensors and acting upon that environment through actuators
+    \item Agents include humans, robots, vehicles, etc
+    \item The agent function maps from percept histories to actions $ f: P^* \to A$
+    \item The agent program runs on the physical architecture to produce $f$ \\ $agent = architecture + program$
+\end{itemize}
+
+The goal of AI then is to link the percepts of the environment to actions that it can take.
+
+
+\subsection*{Rationality}
+
+\begin{itemize}
+    \item A \definition{rational agent} does the right thing, but what does it mean to do the right thing?
+    \item A \definition{performance measure} to evaluate the behavior of the agent in an environment
+    \begin{itemize}
+        \item One point per square cleaned up in time T?
+        \item One point per clear square per time step, minus one per move?
+    \end{itemize}
+    \item A rational agent chooses whichever action maximizes the expected value of the performane measure given the percept sequence to date.
+    \item What is rational at any given time depends on four things:
+    \begin{enumerate}
+        \item The performance measure that defines the criterion of success
+        \item The agent's prior knowledge of the environment
+        \item The actions that the agent can perform
+        \item The agent's percept sequence to date
+    \end{enumerate}
+
+\end{itemize}
+
+\subsubsection*{Definition of a Rational Agent}
+
+For each possible percept sequence, a rational agent should select an action that is expected to maximize its performance
+measure given the evidence provided by the percept sequence, and whatever built-in knowledge the agent has.
+
+\subsection*{The Nature of Environments / Task Environments (PEAS)}
+
+To design a rational agent, we must specify the task environment:
+\begin{itemize}
+    \item Performance measure
+    \item Environment
+    \item Actuators
+    \item Sensors
+\end{itemize}
+
+\subsubsection*{PEAS - Example - Automated Taxi}
+
+\begin{itemize}
+    \item Performance Measure: Profit, Safety, Destination (minimal path), Comfort
+    \item Environment: US streets/freeways, traffic, weather
+    \item Actuators: Steering, Accelerator, Brake, Horn, Speakers/Display, etc
+    \item Sensors: Cameras, Accelerometers, Engine Sensors, GPS, etc
+\end{itemize}
+
+
+\subsection*{Properties of Task Environments}
+
+\begin{itemize}
+    \item Fully Observable vs Partially Observable
+    
+    \item Single-agent vs Multi-agent
+    \begin{itemize}
+        \item Competitive vs Cooperative environment
+    \end{itemize}
+    
+    \item Deterministic vs Nondeterministic
+    
+    \begin{itemize}
+        \item In deterministic environments, the next state of the environment is completely determined by the current state and the action executed by the agent
+    \end{itemize}
+    
+    \item Episodic vs Sequential
+    \begin{itemize}
+        \item In an episodic environment, the agen'ts experience is divided into atomic episodes. 
+        In each episode, the agent receives a percept and then performs a single action. 
+        The next episode does not depend on the action taken in the previous ones.
+        
+        \item In a sequential environment, the current decisions could affect the future decisions.
+    \end{itemize}
+
+\end{itemize}
+
+\end{document}
