@@ -1,0 +1,130 @@
+\documentclass[12pt]{article}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=15mm, top=20mm, right=15mm, bottom=20mm}
+
+% Fancy Header
+\usepackage{fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\pagestyle{fancy}
+\fancyhf{}
+\chead{MAT 381 - Calculus 3}
+\lfoot{CALU Spring 2021}
+\rfoot{RDK}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+\onehalfspacing
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\section*{8.9 Improper Intgerals}
+
+There are typically two types of improper integrals:
+
+\begin{enumerate}
+
+    \item The interval of integration is infinite \\
+    $ \int_{1}^{\infty} \frac{1}{x^2} \,dx $
+
+    \item The integrand is unbounded on the interval of integration \\
+    $ \int_{-1}^{1} \frac{1}{x} \,dx $
+
+\end{enumerate}
+
+How do you find the integral $\int_{1}^{\infty} \frac{1}{x^2} \,dx$?
+
+Consider the integral $\int_{1}^{b} \frac{1}{x^2} \,dx$, where $b > 1$ is an arbitrary real number.
+
+Then we can write $\lim_{b\to\infty} \int_{1}^{b} \frac{1}{x^2} \,dx $
+
+Changing the infinity to a variable, and then taking the limit of the integral to infinity allows for a possible solution.
+
+\subsubsection*{Examples}
+
+\begin{itemize}
+
+    \item $ \int_{0}^{\infty} \frac{sin(x)}{x} \,dx = \lim_{b\to\infty} \int_{0}^{b} \frac{sin(x)}{x} \,dx $
+
+    \item $ \int_{-\infty}^{1} \frac{e^x}{x^2} \,dx = \lim{a\to\infty} \int_{a}^{1} \frac{e^x}{x^2} \,dx $
+
+\end{itemize}
+
+
+\subsubsection*{Example}
+
+Find, if possible: $ \int_{1}^{\infty} \frac{1}{x^2} \,dx $
+
+\begin{enumerate}
+
+    \item Rewrite as a limit \\ $\lim_{b\to\infty} \int_{1}^{b} \frac{1}{x^2} \,dx$
+
+    \item Solve the integral first: \\
+    \begin{equation*}
+        \int_{1}^{b} \frac{1}{x^2} \,dx \\ 
+        = -\frac{1}{x} \bigg\rvert_{1}^{b} \\
+        = -\frac{1}{b} + 1 
+    \end{equation*}
+
+    \item Then use that to find the limit: \\
+    \begin{equation*}
+        \lim_{b\to\infty} -\frac{1}{b} + 1 = -\frac{1}{\infty} + 1 = 0 + 1 = 1
+    \end{equation*}
+
+    \item Thus $ \int_{1}^{\infty} \frac{1}{x^2} \,dx = 1 $
+
+\end{enumerate}
+
+\begin{itemize}
+    \item An interval is said to \definition{converge} when it goes to a finite value, and \definition{diverge} when it evaluates to an infinite value.
+\end{itemize}
+
+
+\subsection*{Examples, Infinite Integrals}
+
+Evaluate the following integrals, or state if they if diverge.
+
+\begin{enumerate}
+
+    \item \begin{flalign*}
+        &\int_{2}^{\infty} \frac{1}{x} \,dx &&\\
+        &= \lim_{b\to\infty} \int_{2}^{b} \frac{1}{x} \,dx &&\\
+        &= \lim_{b\to\infty}( \ln(x) \bigg\rvert_{2}^{b} ) &&\\
+        &= \lim_{b\to\infty}( \ln(b) - \ln(2) ) &&\\
+        &= \ln(\infty) - \ln(2) = \infty &&
+    \end{flalign*}
+    Therefore, the integral diverges.
+
+    \item \begin{flalign*}
+        &\int_{-\infty}{0} e^{2x} \,dx &&\\
+        &= \lim{a\to-\infty} \int_{-a}{0} e^{2x} \,dx &&\\
+        &= \lim{a\to-\infty} (\frac{1}{2} e^{2x} \bigg\rvert_{a}^{0}) &&\\
+        &= \lim{a\to-\infty} ( \frac{1}{2} - \frac{1}{2e^{2a}} ) &&\\
+        &= \frac{1}{2} - \frac{1}{2e^{2\infty}} &&\\
+        &= \frac{1}{2} &&
+    \end{flalign*}
+    Therefore, the integral converges.
+
+\end{enumerate}
+
+
+\end{document}
