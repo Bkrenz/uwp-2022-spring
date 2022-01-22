@@ -124,7 +124,20 @@ Evaluate the following integrals, or state if they if diverge.
     \end{flalign*}
     Therefore, the integral converges.
 
+    \item \begin{flalign*}
+        & \int_{-\infty}^{\infty} e^{4x} \,dx &&\\
+        & = \int_{-\infty}^{0} e^{4x} \,dx + \int_{0}^{\infty} e^{4x} \,dx &&\\
+        & \int_{-\infty}^{0} e^{4x} \,dx = \lim_{a\to\-\infty} ( \frac{1}{4} e^{4x} \bigg\rvert_{a}^{0}) &&\\
+        & = \lim_{a\to-\infty} (\frac{1}{4} - \frac{1}{4}e^{4a}) = \frac{1}{4} &&\\
+        & \int_{0}^{\infty} e^{4x} \,dx = \lim_{b\to\infty} ( \frac{1}{4} e^{4x} \bigg\rvert_{0}^{b}) &&\\
+        & = \lim_{b\to\infty} (\frac{1}{4}e^{4b} - \frac{1}{4}) = \infty &&\\
+        & = \int_{-\infty}^{0} e^{4x} \,dx + \int_{0}^{\infty} e^{4x} \,dx = \frac{1}{4} + \infty = \infty&&\\
+    \end{flalign*}
+    Therefore, the integral diverges.
+
 \end{enumerate}
+
+
 
 
 \end{document}
