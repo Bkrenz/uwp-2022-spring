@@ -1,0 +1,190 @@
+\documentclass[12pt]{article}
+
+\title{Chapter 3: Describing Syntax and Semantics}
+\author{}
+\date{}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=15mm, top=20mm, right=15mm, bottom=20mm}
+
+% Fancy Header
+\usepackage{fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\pagestyle{fancy}
+\fancyhf{}
+\chead{CSC 455 - Structure of Programming Languages}
+\lfoot{CALU Fall 2021}
+\rfoot{RDK}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+\onehalfspacing
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\subsection{English language?}
+
+\begin{itemize}
+  \item Grammar, syntax - defines rules, the structure of the statement, not the meaning
+  \item Meaning (semantics) - even if structure is correct, meaning may not be direct or correct
+  \item We need to follow the rules, and get the correct meaning
+\end{itemize}
+
+\section{Introduction}
+
+\begin{itemize}
+  \item Syntax and semantics provide a language's definition
+  \item Syntax: the form or structure of the expressions, statements, and program units
+  \item Semantics: the meaning of the expressions, statements, and program units
+  \item A \textit{sentence (or statement)} is a string of characters over some alphabet
+  \item A \textit{language} is a set of sentences
+  \item A \textit{lexeme} is the lowest level syntactic unit of a language (e.g., *, sum, begin)
+  \item A \textit{token} is a category of lexemes (e.g., identifier)
+  \item Programs are string of lexemes rather than characters. E.g., \textit{sum+=2;}
+\end{itemize}
+
+Lexemes and Tokens are closely related:
+
+\begin{tabular}{l l}
+  \textit{Lexemes} & \textit{Token} \\ \hline
+  $sum$ & identifier \\
+  $+$ & arthmetic operator \\
+  $=$ & equal\_sign \\
+  $2$ & int\_literal \\
+  $;$ & semicolon
+\end{tabular}
+
+\subsection{Recognizers}
+
+\begin{itemize}
+  \item A recognition device reads input strings over the alphabet of the language and decides whether the input string belong to the language
+  \item Example: syntax analysis part of a compiler
+\end{itemize}
+
+\subsection{Generators}
+
+\begin{itemize}
+  \item A device that generates sentences of a language
+  \item One can determine if the syntax of a particular sentence is syntactically correct by comparing it to the structure of the generator
+\end{itemize}
+
+\section{BNF and Context-Free Grammers}
+
+\subsection{Context-Free Grammars}
+
+\begin{itemize}
+  \item Developed by Noam Chomsky in the mid-1950s
+  \item Language generators, meant to describe the syntax of natural languages
+  \item Define a class of languages called context-free languages
+\end{itemize}
+
+\subsection{Backus-Naur Form}
+
+\begin{itemize}
+  \item Inveted by John Backus to describe the syntax of Algol58, later modified by Peter Naur for Algol 60
+  \item BNF (Backus-Naur Form) is equivalent to context-free forms
+  \item In BNF, abstractions are used to represent classes of syntactic structures;they act like syntactic variables, including nonterminal symbols or terminals
+  \item \textit{Terminals} are lexemes or tokens
+  \item A \textbf{rule or production} has a left-hand side (LHS) which is a nonterminal, and a right hand side (RHS), which is a string of terminals and/or nonterminals
+  \item Example:
+  \begin{equation*}
+    <assign> \to <var> = <expression>
+  \end{equation*}
+  \item Examples of BNF Rules:
+  \begin{itemize}
+    \item $<ident\_list> \to identifier | identifier, <ident\_list>$
+    \item $<if\_stmt> \to if <logic\_expr> then <stmt>$
+  \end{itemize}
+  \item A \textit{start symbol} is a special element of the nonterminals of a grammar
+  \item Rules can be recursive
+\end{itemize}
+
+\section{Derivation}
+
+\begin{itemize}
+  \item A derivation is a repeated application application of rules, starting with the start symbol, repeat till ending with a sentence (all terminal symbols)
+  \item Application of rules:
+  \begin{itemize}
+    \item Pick a non-terminal symbol on the right, and replace the non-terminal symbol using a RHS of rule for the non-terminal symbol
+    \item Example: \\
+  \end{itemize}
+\end{itemize}
+
+\begin{flalign*}
+  & <start\_symbol> \to <program> && \\
+  & <program> \to \textbf{begin} <stmt\_list> \textbf{end} && \\
+  & <stmt\_list> \to <stmt> | <stmt> ; <stmt\_list> && \\
+  & <stmt> \to <var> = <expression>  && \\
+  & <var> \to A | B | C && \\
+  & <expression> \to <var> + <var> | <var> - <var> | <var>
+\end{flalign*}
+
+\begin{flalign*}
+  <program> & \to begin <stmt\_list> end && \\
+  & \to begin <stmt> ; <stmt\_list> end && \\
+  & \to begin <var> = <expression> ; <stmt\_list> end && \\
+  & \to begin A = <expression> ; <stmt\_list> end && \\
+  & \to begin A = <var> + <var> ; <stmt\_list> end && \\
+  & \to begin A = B + <var> ; <stmt\_list> end && \\
+  & \to begin A = B + C ; <stmt\_list> end && \\
+  & \to begin A = B + C ; B = C end &&
+\end{flalign*}
+
+
+\section{The General Problem of Describing Syntax}
+
+\begin{itemize}
+  \item 
+\end{itemize}
+
+
+\section{Formal Methods of Describing Language}
+
+\begin{itemize}
+  \item 
+\end{itemize}
+
+
+\section{Introduction}
+
+\begin{itemize}
+  \item 
+\end{itemize}
+
+
+\section{Introduction}
+
+\begin{itemize}
+  \item 
+\end{itemize}
+
+
+\section{Introduction}
+
+\begin{itemize}
+  \item 
+\end{itemize}
+
+
+
+\end{document}
+
