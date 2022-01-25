@@ -1,5 +1,5 @@
 ## Java
-.class
+*.class
 
 ## Ignore Folders for Assembly templates and examples
 Provided
