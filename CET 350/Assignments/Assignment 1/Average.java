@@ -1,7 +1,8 @@
 /**
- * @author Robert Krency
- * @author Auston Rigdon
- * @author Kevin Reisch
+ * Group 5
+ * @author Robert Krency, kre1188@calu.edu
+ * @author Auston Rigdon, rig4833@calu.edu
+ * @author Kevin Reisch, rei3819@calu.edu
  * 
  * Assignment 1 - Average
  * CET 350 - Pyzdrowski
