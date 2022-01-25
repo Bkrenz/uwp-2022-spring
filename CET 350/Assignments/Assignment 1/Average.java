@@ -1,5 +1,7 @@
 /**
  * @author Robert Krency
+ * @author Auston Rigdon
+ * @author Kevin Reisch
  * 
  * Assignment 1 - Average
  * CET 350 - Pyzdrowski
