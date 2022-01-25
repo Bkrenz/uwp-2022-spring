@@ -3,7 +3,7 @@
 
 
 .data
-msgHelloWorld BYTE "Hello world!"
+msgHelloWorld BYTE "Hello world, from assembly!"
 
 .code
 main proc
