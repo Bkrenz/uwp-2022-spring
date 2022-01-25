@@ -118,6 +118,46 @@ To design a rational agent, we must specify the task environment:
         \item In a sequential environment, the current decisions could affect the future decisions.
     \end{itemize}
 
+    \item Static vs Dynamic: a dynamic environment can be changed for the agent
+
+    \item Discrete vs Continuous: Able to process a snapshot vs ongoing inputs
+
 \end{itemize}
+
+\begin{tabular}{l | l l}
+    Task Environment & Self-Driving Taxi & Crossword \\ \hline
+    Observable & Partially & Fully \\
+    Agents & Multi & Single \\
+    Deterministic & No & Yes \\
+    Episodic/Sequential & Sequential & Sequential \\ 
+    Static/Dynamic & Dynamic & Static \\
+    Continuous/Discrete & Continuous & Discrete 
+\end{tabular}
+
+\subsection{Agent Types}
+
+Any type of agent can have a learning model added to it.
+
+\subsubsection{Simple Reflex Agents}
+
+This agent type selects actions based on the currect percept, ignoring the rest of the percept history.
+
+\subsubsection{Model-based reflex agents}
+
+This agent maintains some sort of internal state that depends on the percept history.
+This is to handle partial observability to let the agent keep track of the part of the world it cannot see now.
+
+\subsubsection{Goal-based Agents}
+
+This type keeps track of the world state as well as a set of goals it is trying to achieve and chooses an action that will (eventually) leadd to the achievements of its goals.
+
+\subsubsection{Utility-based Agents}
+
+This type can be used wwhen there are conflicting goals. It uses a model of the world, along with a utility function that measures its performance among the states of the world.
+Then it chooses the action that maximizes the expected utility.
+Goal based agents and utility-based agents are more flexible than simple reflex and model-based reflex agents.
+Why?
+
+
 
 \end{document}
