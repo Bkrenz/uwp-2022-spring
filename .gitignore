@@ -1,6 +1,9 @@
 ## Java
 *.class
 
+## Assembly Stuff
+*.obj
+
 ## Ignore Folders for Assembly templates and examples
 Provided
 
