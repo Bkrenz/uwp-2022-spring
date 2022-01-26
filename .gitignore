@@ -7,6 +7,9 @@
 ## Ignore Folders for Assembly templates and examples
 Provided
 
+## Ignore Exes
+*.exe
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof

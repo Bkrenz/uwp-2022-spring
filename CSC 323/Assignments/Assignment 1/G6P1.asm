@@ -8,7 +8,7 @@ msgHelloWorld BYTE "Hello world, from assembly!"
 .code
 main proc
 	
-	
+	nop
 	
 main endp
 
