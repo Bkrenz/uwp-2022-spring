@@ -1,0 +1,66 @@
+\documentclass[12pt]{article}
+
+\title{CSC 455 - Assignment 2}
+\author{Robert Krency}
+\date{\today}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=20mm, top=20mm, right=20mm, bottom=20mm}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+\onehalfspacing
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\maketitle
+
+Using the following grammer, identify which of the sentences is valid.
+
+\begin{flalign*}
+    <S> & \to\ <A> a <B> b &&\\
+    <A> & \to\ <A> b\ \vert\ b &&\\
+    <B> & \to\ <B> a\ \vert\ a &&
+\end{flalign*}
+
+\begin{enumerate}
+    \item baab
+    \item bbbab
+    \item bbaaaaa
+    \item bbaab
+\end{enumerate}
+
+\subsection*{Solution:}
+
+The two valid sentences are ``baab'' and ``bbaab''.
+
+The first grammar rule indicates that any valid sentence must end with `b'.
+The second grammar rule recursively indicates any valid sentence must begin with a series of `b', with length $\geq 1$.
+The third grammer rule recursively indicates any valid sentence must contain a series of `a' between the `b', with length $\geq 1$ immediately preceded by an `a'.
+
+The sentence ``bbbab'' breaks the third rule, as there are not enough `a'.
+
+The sentence ``bbaaaaa'' breaks the first rule, as there is no `b' at the end.
+
+
+\end{document}
+
