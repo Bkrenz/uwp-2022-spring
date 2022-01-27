@@ -1,5 +1,5 @@
 /**
- * CET 350 - Program2 - Group 6
+ * CET 350 - Program2 - Group 5
  * 
  * @author Robert Krency, kre1188@calu.edu
  * @author Auston Rigdon, rig4833@calu.edu
