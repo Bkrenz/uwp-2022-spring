@@ -1,24 +1,39 @@
-TITLE Add and Subtract, Version 2         (AddSub2.asm)
+TITLE Average (Average.asm)
 
-; This program adds and subtracts 32-bit integers
-; and stores the sum in a variable.
+; CSC 323 - Group 6 - Assignment 1: Average
+; Author: Robert Krency, kre1188@calu.edu
+; Author: Anthony Stepich, <email>
+; Author: Austin Pringle, <email>
+; Author: Camden Kovach, <email>
+
+; This program reads in integer grades from the user and compiles
+; an average, total count, and total sum statistics of the input.
 
 INCLUDE Irvine32.inc
 
 .data
-val1     dword  10000h
-val2     dword  40000h
-val3     dword  20000h
-finalVal dword  ?
+msg_Details		BYTE	"Welcome to the grade accumulator.", 0
+msg_GetInput	BYTE	"Input an integer, 0-100 inclusive: ", 0
+msg_Count		BYTE	"Count: ", 0
+msg_Total		BYTE	"Total: ", 0
+msg_Average		BYTE	"Average: ", 0
+
+count			dword	0
+total			dword	0
+average			dword	0
 
 .code
 main PROC
 
-	mov	eax,val1			; start with 10000h
-	add	eax,val2			; add 40000h
-	sub	eax,val3			; subtract 20000h
-	mov	finalVal,eax		; store the result (30000h)
-	call	DumpRegs			; display the registers
+	mov edx, OFFSET msg_Details
+	call WriteString
+
+GetInput:
+	mov edx, OFFSET msg_GetInput
+	call WriteString
+	
+
+
 
 	exit
 main ENDP
