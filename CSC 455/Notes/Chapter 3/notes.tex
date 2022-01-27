@@ -149,6 +149,27 @@ Lexemes and Tokens are closely related:
   & \to begin A = B + C ; B = C end &&
 \end{flalign*}
 
+\subsubsection{Example}
+
+Build a sentence using the following rules:
+
+\begin{tabular}{l c l}
+  $<assign>$ & $\to$ & $<id> = <expression>$ \\
+  $<id>$ & $\to$ & A $\|$ B $\|$ C \\
+  $<expression>$ & $\to$ & $<id>$ + $<expression>$ \\
+  & & $<id> * <expression>$ \\
+  & & $( <expression> )$ \\
+  & & $<id>$
+\end{tabular}
+
+\subsection{Parse Trees}
+
+A hierarchical representation of a derivation.
+Both a left-most and right-most derivation can be represented by the same parse tree.
+
+\subsection{Ambiguity in Grammars}
+
+
 
 \section{The General Problem of Describing Syntax}
 

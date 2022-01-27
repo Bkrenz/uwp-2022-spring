@@ -1,8 +1,14 @@
+## VSCode
+.vscode
+includes
+
 ## Java
 *.class
 
 ## Assembly Stuff
 *.obj
+*.inc
+*.lib
 
 ## Ignore Folders for Assembly templates and examples
 Provided
