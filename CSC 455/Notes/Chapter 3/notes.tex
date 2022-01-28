@@ -169,42 +169,61 @@ Both a left-most and right-most derivation can be represented by the same parse 
 
 \subsection{Ambiguity in Grammars}
 
+There can sometimes be ambiguities in a language.
+This can lead to multiple parse trees for the same sentence.
+Consider the following math expression:
+
+\begin{equation*}
+  A = B+C*D
+\end{equation*}
+
+The grammer has no indication of whether the $+$ or the $*$ has any precedence.
+Our rules may follow standard mathematical notation, giving $*$ precedence.
+As such, we would have to create more rules to fix precedence.
 
 
-\section{The General Problem of Describing Syntax}
-
-\begin{itemize}
-  \item 
-\end{itemize}
-
-
-\section{Formal Methods of Describing Language}
-
-\begin{itemize}
-  \item 
-\end{itemize}
-
-
-\section{Introduction}
+\section{Attribute Grammars}
 
 \begin{itemize}
-  \item 
+  \item Attribute grammars (AGs) have additions to CFGs to carry some semantic info on parse tree nodes
+  \item Primary value of AGs
+  \begin{itemize}
+    \item Static semantics specification
+    \item Compiler design (static semantics checking)
+  \end{itemize}
 \end{itemize}
 
+An \definition{Attribute Grammar} is a context-free grammar $G = (S, N, T, P)$ with the following additions:
+\begin{itemize}
+  \item For each grammar symbol $x$ there is a set $A(x)$ of \textbf{attribute} values
+  \item Each rule has a set of \textbf{functions} that define certain attributes of the nonterminals in the rule
+  \item Each rule has a (possibly empty) set of \text{bf} predicates to check for attribute consistency
+\end{itemize}
 
-\section{Introduction}
+\subsection{Static Semantics}
 
 \begin{itemize}
-  \item 
+  \item Nothing to do with meaing: checked when compiling, not executing
+  \item Context-free grammars (CFGs) difficult/cannot describe all of the syntax of programming languages
+  \begin{itemize}
+    \item Type compatibility rules
+    \item All variables must be defined before they are referenced
+  \end{itemize}
 \end{itemize}
 
-
-\section{Introduction}
+\subsection{Dynamic Semantics}
 
 \begin{itemize}
-  \item 
+  \item There is no single widely acceptable notation or formalism for describing semantics
+  \item Several needs for a methodology and notation for semantics
+  \begin{itemize}
+    \item Programmers need to know what statements mean
+    \item Compiler writers must know exactly what language constructs do
+    \item Correctness proofs would be possible
+    \item Compiler generators would be possible
+    \item Designers could detect ambiguities and inconsistencies
+  \end{itemize}
 \end{itemize}
-
 
 
 \end{document}
