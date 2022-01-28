@@ -66,7 +66,10 @@ GetInput:
 
 
 CalcAverage:
-	nop
+	mov eax,total 
+	mov ebx,count
+	div ebx
+	
 
 	
 PrintStats:
