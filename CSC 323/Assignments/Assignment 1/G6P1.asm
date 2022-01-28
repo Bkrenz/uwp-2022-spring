@@ -12,15 +12,13 @@ TITLE Average (Average.asm)
 INCLUDE Irvine32.inc
 
 .data
-
-; 13, 10 characters are CR,LF to create a new line
 msg_Details				BYTE	"Welcome to the grade accumulator.", 13, 10, 0
 msg_QuitDetails			BYTE	"To quit, enter two invalid inputs in a row.", 13, 10, 0
 msg_GetInput			BYTE	"Input an integer, 0-100 inclusive: ", 0
 msg_Count				BYTE	13, 10, "Count: ", 0
 msg_Total				BYTE	13, 10, "Total: ", 0
 msg_Average				BYTE	13, 10, "Average: ", 0
-msg_err_NumRange		BYTE	13, 10, "Error: Number not within range 0-100, inclusive.", 13, 10 0
+msg_err_NumRange		BYTE	13, 10, "Error: Number not within range 0-100, inclusive.", 13, 10, 0
 
 count					dword	0
 total					dword	0
@@ -64,8 +62,7 @@ GetInput:
 	add ebx, 1
 	mov count, ebx
 
-	; This loop keeps crashing out randomly?
-	loop GetInput
+	call GetInput						; Loop getting the input
 
 
 CalcAverage:
