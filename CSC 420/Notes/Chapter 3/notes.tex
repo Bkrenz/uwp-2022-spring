@@ -1,0 +1,127 @@
+\documentclass[12pt]{article}
+
+\title{Chapter 3}
+\author{}
+\date{}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=15mm, top=20mm, right=15mm, bottom=20mm}
+
+% Fancy Header
+\usepackage{fancyhdr}
+\renewcommand{\footrulewidth}{0.4pt}
+\pagestyle{fancy}
+\fancyhf{}
+\chead{CSC 420 - Artificial Intelligence}
+\lfoot{CALU Spring 2022}
+\rfoot{RDK}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\maketitle
+
+\section{Problem Solving Process}
+
+\begin{enumerate}
+    \item Goal forumlation
+    \item Problem formulation
+    \item Search
+    \item Execution
+\end{enumerate}
+
+\section{Search Problems and Solutions}
+
+A search problem can be defined formally as follows:
+\begin{itemize}
+    \item A set of \textbf{all states}, called the \textbf{state space}
+    \item \textbf{initial state}
+    \item One or more \textbf{goal states}
+    \item The \textbf{actions}
+    \begin{itemize}
+        \item Given a state $s$, a function $ACTIONS(s)$ returns a finite set of actions that can be executed in $s$
+    \end{itemize}
+    \item A \textbf{transition model}, describes what each action does
+    \begin{itemize}
+        \item $RESULT(s,a)$ returns the state that results from doing action $a$ in state $s$
+    \end{itemize}
+    \item An \textbf{action cost function}, denoted by $ACTION-COST(s, a, s')$. It gives the numeric cost of applying action $a$ in state $s$ to reach state $s'$.
+\end{itemize}
+
+A search algorithm can be conducted to find:
+\begin{itemize}
+    \item A \textbf{solution} is a path of actions sequence from the initial state to the goal state
+    \item An \textbf{optimal solution} is the lowest path cost among all students
+\end{itemize}
+
+\section{Formulating Problems}
+
+\begin{itemize}
+    \item When formulating a problem, we are creating a \textbf{model}
+    \item A \textbf{model} is an abstract mathematical description and not a real thing
+    \item \textbf{Abstraction} is the process of removing details from a presentation
+    \item One issue is finding a suitable \textbf{Level of Abstraction}
+\end{itemize}
+
+\subsection{Example Problems}
+
+There are two types of problems:
+\begin{enumerate}
+    \item \textbf{Standardized problems} are intended to illustrate or exercise different problem-solving methods and used as a benchmark
+    \item \textbf{Real-world problems}
+\end{enumerate}
+
+\subsubsection{Real-World Problems}
+
+\definition{Routing-finding problems}: a set of locations that must be visited to reach a single destination
+
+Examples:
+\begin{itemize}
+    \item Driving directions
+    \item Routing video streams over the Internet
+    \item Military operations planning
+    \item Airline traveling-planning systems
+\end{itemize}
+
+Airline Traveling-Planning website example:
+\begin{itemize}
+    \item States: Each state includes a location (eg, an airport) and the current time
+    \item Initial State: the user's home airport
+    \item Actions: take any flight from the current location after the current time, in any seat class, leaving enough time for within airport transfer if needed
+    \item Transition Model: the state resulting from taking a flight
+    \item Goal State: A destination city (goal can be more complex, such as only a nonstop flight)
+    \item Action Cost: A combination of cost, waiting time, flight time, seat quality, time of day, etc
+\end{itemize}
+
+\definition{Touring problems}: a set of locations that must be visited, rather than a single destination
+
+Examples:
+\begin{itemize}
+    \item Routing of a school bus
+    \item VLSI layout: cell layout and channel Routing
+    \item Robot Navigation
+    \item Automatic assembly sequencing
+\end{itemize}
+
+
+
+\end{document}
