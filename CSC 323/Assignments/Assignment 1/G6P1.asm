@@ -29,7 +29,10 @@ remainder				dword   0
 buffer					BYTE	21 DUP(0)
 byteCount				dword	?
 
-flag_Error				dword	0		; Tracks if an error has occurred previously
+
+flag_Error	dword	0		; Tracks if an error has occurred previously
+
+
 
 .code
 main PROC
@@ -43,6 +46,8 @@ main PROC
 GetInput:
 	mov edx, OFFSET msg_GetInput		; Prompt user for input
 	call WriteString
+	
+	cmp 
 	
 	mov edx, OFFSET buffer				; Read input from user as string
 	mov ecx, SIZEOF buffer
@@ -58,6 +63,7 @@ GetInput:
 	JNO L1
 	
 	L1:cmp ecx, 100
+	
 	JLE L2
 	L2:cmp ecx,0					;checks for valid number
 	JGE L3
@@ -104,7 +110,15 @@ PrintStats:
 	mov edx, OFFSET msg_Remainder				;prints out the remainder
 	call Writestring
 	mov eax, remainder
-	call writeInt
+	call WriteInt
+	
+	call GetInput 
+
+PrintErrorNotInRange:
+	mov edx, OFFSET msg_err_NumRange
+	call WriteString
+	call PrintStats					;Prints error message for input not in range 
+
 
 
 	exit
