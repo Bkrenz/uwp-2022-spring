@@ -1,0 +1,73 @@
+\documentclass[12pt]{article}
+
+\title{CSC 455 - Assignment 3}
+\author{Robert Krency}
+\date{\today}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=20mm, top=20mm, right=20mm, bottom=20mm}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+\onehalfspacing
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\maketitle
+
+
+
+
+\pagebreak
+
+\section{Weakest Preconditions}
+
+\begin{enumerate}
+
+    \item Find the weakest precondition of the expression $a = a + 2 *\b - 1, \{ a > 1 \}$
+    \begin{flalign*}
+        & a > 1 && \\
+        & a + 2 * b - 1 > 1 && \\
+        & a + 2 * b > 2 &&
+    \end{flalign*}
+
+    \item Find the weakest precondition of the expressions
+    \begin{flalign*}
+        & a = 2 * b + 1 && \\
+        & b = a - 3 && \\
+        & \{ b < 0 \} &&
+    \end{flalign*}
+
+    \begin{flalign*}
+        & b < 0 && \\
+        & a - 3 < 0 && \\
+        & a < 3 && \\
+        & 2 * b + 1 < 3 && \\
+        & 2 * b < 2 && \\
+        & b < 1 && 
+    \end{flalign*}
+
+\end{enumerate}
+
+
+\end{document}
+
