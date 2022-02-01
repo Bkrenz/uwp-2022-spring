@@ -225,6 +225,49 @@ An \definition{Attribute Grammar} is a context-free grammar $G = (S, N, T, P)$ w
   \end{itemize}
 \end{itemize}
 
+Three types of Dynamic Semantics:
+\begin{enumerate}
+  \item Operational
+  \item Denontational
+  \item Axiomatic
+\end{enumerate}
+
+\subsubsection{Denotational Semantics}
+
+\begin{flalign*}
+  & <bin\_num> \to `0' \ \vert \ `1' \ \vert \ <bin\_num> `0' \ \vert \ <bin\_num> `1' &&
+\end{flalign*}
+
+\begin{itemize}
+  \item The process of building a denotational specification for a language:
+  \begin{itemize}
+      \item Define a mathematical object for each language entity
+      \item Define a function that maps instances of the language entities onto instances of the corresponding mathematical objects
+  \end{itemize}
+\end{itemize}
+
+Example:
+
+\begin{flalign*}
+  & M_{bin}(`0') = 0 && \\
+  & M_{bin}(`1') = 1 && \\
+  & M_{bin}(<bin\_num> `0') = 2 * M_{bin}(<bin\_num>) && \\
+  & M_{bin}(<bin\_num> `1') = 2 * M_{bin}(<bin\_num>) + 1 &&
+\end{flalign*}
+
+\subsubsection{Axiomatic Semantics}
+
+\begin{itemize}
+  \item Based on formal logic (predicate calculus)
+  \item Original purpose: formal program verification
+  \item Axioms or inference rules are defined for each statement type in the language (to allow transformations of logic expressions)
+  \item The logic expressions are called \textbf{assertions}
+  \item An assertion before a statement (a \textbf{precondition}) states the relationships and constraints among variables that are true at that point in execution
+  \item An assetion following a statement is a \textbf{postcondition}
+  \item A \textbf{weakest precondition} is the least restrictive precondition that will guarantee the postcondition
+\end{itemize}
+
+
 
 \end{document}
 
