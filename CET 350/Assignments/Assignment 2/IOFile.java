@@ -53,7 +53,7 @@ public class IOFile
 		boolean menuInput, validOutput = false;
 		while ( dontQuit && !validOutput) {
 
-			if (this.FileExist(fileNames[1])) {
+			if (!fileNames[0].equals(fileNames[1]) && this.FileExist(fileNames[1])) {
 				menuInput = true;
 				while (menuInput) {
 				
@@ -100,7 +100,7 @@ public class IOFile
 
 				try {
 
-					fileNames[0] = inputReader.readLine();
+					fileNames[1] = inputReader.readLine();
 					if ( fileNames[1].isBlank() )
 						dontQuit = false;
 
