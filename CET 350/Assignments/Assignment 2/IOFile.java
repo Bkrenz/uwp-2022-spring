@@ -5,64 +5,118 @@ import java.io.*;
 public class IOFile 
 {
 	
-	//blank constructor, I don't think this class has any variables
-	public void IOFile()
-	{
-		
-	}
-	
 	//I'm not done with this yet, but it is to get file names
-	public boolean getNames(String args[], String ioname[])
+	public boolean getNames(String cmdArgs[], String fileNames[])
 	{
-		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 		boolean dontQuit = true;
+
+		// Ensure the file names are not null
+		if( fileNames[0] == null )
+			fileNames[0] = "";
+		if( fileNames[1] == null )
+			fileNames[1] = "";
 		
-		switch (args.length)
-		{
-			case 0:
-				do
-				{
-					System.out.println("Please enter your input file: ");
-					try
-					{
-						ioname[0] = stdin.readLine();
-					
-					}
-					catch(IOException e)
-					{
-						System.out.println("Error: IOException");
-					}
-				}while(!ioname.equals("") && !FileExist(ioname[0]));
-			case 1:
-				System.out.println("Please enter your output file: ");
-				try
-				{
-					ioname[1] = stdin.readLine();
-				}
-				catch(IOException e)
-				{
-					System.out.println("Error: IOException");
-				}
+		// Check if any of the file names were provided on the command line
+        switch (cmdArgs.length) {
+
 			case 2:
-				try
-				{
-					ioname[0] = args[0];
-					ioname[1] = args[1];
+				fileNames[1] = cmdArgs[1];
+			
+			case 1:
+				fileNames[0] = cmdArgs[0];
+				break;
+
+			default:
+				break;
+
+		}
+
+		// If the input file name is not valid, ask the user for a new name or to quit
+		while ( dontQuit && !this.FileExist(fileNames[0])) {
+
+			System.out.println("\nInvalid input file name. To quit, leave input empty.");
+			System.out.println("Please input a new input name: ");
+
+			try {
+
+				fileNames[0] = inputReader.readLine();
+				if ( fileNames[0].isBlank() )
+					dontQuit = false;
+
+			} catch (IOException eIO) {
+				System.err.println("\nError getting input:\n" + eIO.toString());
+			}
+		}
+
+		// If the output file name is not valid, ask the user for a new name or to quit
+		boolean menuInput, validOutput = false;
+		while ( dontQuit && !validOutput) {
+
+			if (this.FileExist(fileNames[1])) {
+				menuInput = true;
+				while (menuInput) {
+				
+					System.out.println("\nFile already exists. Please enter a number from the below menu: ");
+					System.out.println("\t1. Input new name.");
+					System.out.println("\t2. Back up file, then overwrite.");
+					System.out.println("\t3. Overwrite file.");
+					System.out.println("\t4. Quit.");
+
+					try {
+						switch(Integer.parseInt(inputReader.readLine())) {
+
+							case 1: // User wants to enter a new name
+								break;
+
+							case 2: // User wants to backup the file then overwrite
+								this.FileBackup(fileNames[1], ".bak");
+								validOutput = true;
+								break;
+
+							case 3: // User just wants to overwrite the file
+								validOutput = true;
+								break;
+
+							case 4: // User wants to quit
+								dontQuit = false;
+								menuInput = false;
+								break;
+
+							default:
+								System.err.println("Invalid entry, try again.");
+
+						}
+					} catch (IOException eIO) {
+						System.out.println("Error getting input:\n" + eIO.toString());
+					} catch (NumberFormatException eNumForm) {
+						System.err.println("Error: Invalid number. Try again.");
+					}
+		
 				}
-				catch(ArrayIndexOutOfBoundsException e)
-				{
-					
+			} else {
+				System.out.println("\nInvalid output file name. To quit, leave input empty.");
+				System.out.println("Please input a new output name.");
+
+				try {
+
+					fileNames[0] = inputReader.readLine();
+					if ( fileNames[1].isBlank() )
+						dontQuit = false;
+
+				} catch (IOException eIO) {
+					System.err.println("\nError getting input:\n" + eIO.toString());
 				}
+			}
 		}
 		
-		return dontQuit;
-		
+		return dontQuit;	
 	}
 	
 	//returns true if a file already exists, returns false otherwise
 	public boolean FileExist(String name)
 	{
-		return (new File(name)).isFile();
+		return name != null && (new File(name)).isFile();
 	}
 	
 	//create a new backup file with a specified extension
