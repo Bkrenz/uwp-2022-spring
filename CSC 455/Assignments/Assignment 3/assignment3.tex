@@ -38,10 +38,16 @@
 
 \begin{enumerate}
 
-    \item $<var>.actual\_type \leftarrow$ look-up(B) Rule(4)
-    \item $<expr>.expected\_type \leftarrow <var>.actual\_type$ 
-
+    \item $<var>[1].actual\_type \leftarrow$ look-up(B) Rule(4)
+    \item $<expr>.expected\_type \leftarrow <var>.actual\_type$ Rule(1)
+    \item $<var>[2].expected\_type \leftarrow$ look-up(B) Rule(1) \\
+          $<var>[3].expected\_type \leftarrow$ look-up(A) Rule(1)
+    \item $<expr>.expected\_type \leftarrow$ type will be real Rule(2)
+    \item $<expr>.expected\_type == <expr>.actual\_type$ false, type mismatch Rule(2)
 \end{enumerate}
+
+This will not be a valid statement. The right side will evaluate to a Real variable, following rule 2.
+A real value cannot be assigned to an int variable.
 
 \pagebreak
 
