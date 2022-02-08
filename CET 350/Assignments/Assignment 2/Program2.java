@@ -15,13 +15,15 @@ public class Program2 {
     public static void main(String[] args)
     {
         String[] fileNames = new String[2];
+        String currentToken, currentWord;
         StringTokenizer tokenizer;
 
         BufferedReader inputReader;
         PrintWriter outputWriter;
 
         Word[] words = new Word[100];
-        
+        int wordCount = 0, curIndex, total = 0;
+        char curChar;
 
         if( IOFile.getNames(args, fileNames) )
         {
@@ -35,9 +37,60 @@ public class Program2 {
                     tokenizer = new StringTokenizer(inputReader.readLine(), "\t\n\r ");
                     while(tokenizer.hasMoreTokens())
                     {
-                        outputWriter.println(tokenizer.nextToken());
+                        currentToken = tokenizer.nextToken();
+                        currentWord = "";
+                        curIndex = 0;
+
+                        while ( curIndex < currentToken.length() ) {
+                            curChar = currentToken.charAt(curIndex);
+                            if ( Character.isDigit(curChar) ) {
+                                currentWord += curChar;
+                                if ( curIndex > 0 && isInt(currentWord)
+                                    && (currentToken.charAt(curIndex - 1) == '-') )
+                                    currentWord = "-" + currentWord; 
+                            }
+
+                            else if ( Character.isLetter(curChar) ) {
+
+                                if( isInt(currentWord) ) {
+                                    try {
+                                        total += Integer.parseInt(currentWord);
+                                    } catch (NumberFormatException eNF) {}
+                                    currentWord = "" + curChar;
+                                }
+                                else
+                                    currentWord += curChar;
+                            }
+                            
+                            else if (!currentWord.isEmpty())
+                                currentWord += curChar;
+
+                            curIndex++;
+
+                        }
+                        
+                        if( isInt(currentWord) ) {
+                            try {
+                                total += Integer.parseInt(currentWord);
+                            } catch (NumberFormatException eNF) {}
+                        }
+
+                        curIndex = Word.findWord(words, currentWord, wordCount);
+                        if (curIndex > 0)
+                            words[curIndex].addOne();
+                        else if(!isInt(currentWord)){
+                            words[wordCount] = new Word(currentWord);
+                            wordCount++;
+                        }
+
                     }
                 }
+
+                // Write stuff to file
+                for(int i = 0; i < wordCount; i++)
+                    words[i].print(outputWriter);
+                outputWriter.println("Unique words: " + wordCount);
+                outputWriter.println("Integer Sum: " + total);
 
                 // Close the Files
                 inputReader.close();
@@ -52,4 +105,18 @@ public class Program2 {
         System.out.println("Exiting...");
 
     }
+
+    public static boolean isInt(String word) {
+
+        try {
+            Integer.parseInt(word);
+            return true;
+        } catch(NumberFormatException eNF) {
+            
+        }
+
+        return false;
+
+    }
+
 }

@@ -58,22 +58,13 @@ public class Word
 		out.println(word + "\t" + quant);
 	}
 	
-	
-	//Input a word array, target word, and the size of the word array
-	//returns the index of the word
-	public static int FindWord(Word[] list, String word, int n)
+	public static int findWord(Word[] words, String word, int count)
 	{
-		int index = -1;
-		for(int i = 0; i < n; i++)
-		{
-			if(list[i].getWord().equals(word))
-			{
-				index = i;
-				i = n;
-			}
-		}
+		for(int index = 0 ; index < count; index++)
+			if (words[index].getWord().equalsIgnoreCase(word))
+				return index;
 
-		return index;
+		return -1;
 	}
 	
 }
