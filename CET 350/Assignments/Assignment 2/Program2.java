@@ -15,7 +15,6 @@ public class Program2 {
     public static void main(String[] args)
     {
         String[] fileNames = new String[2];
-        IOFile ioFileHandler = new IOFile();
         StringTokenizer tokenizer;
 
         BufferedReader inputReader;
@@ -24,10 +23,10 @@ public class Program2 {
         Word[] words = new Word[100];
         
 
-        if( ioFileHandler.getNames(args, fileNames) )
+        if( IOFile.getNames(args, fileNames) )
         {
-            inputReader = ioFileHandler.openInputFile(fileNames[0]);
-            outputWriter = ioFileHandler.openOutputFile(fileNames[1]);
+            inputReader = IOFile.openInputFile(fileNames[0]);
+            outputWriter = IOFile.openOutputFile(fileNames[1]);
 
             try {
 
@@ -36,7 +35,7 @@ public class Program2 {
                     tokenizer = new StringTokenizer(inputReader.readLine(), "\t\n\r ");
                     while(tokenizer.hasMoreTokens())
                     {
-                        
+                        outputWriter.println(tokenizer.nextToken());
                     }
                 }
 
