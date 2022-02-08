@@ -43,6 +43,7 @@ public class Program2 {
 
                         while ( curIndex < currentToken.length() ) {
                             curChar = currentToken.charAt(curIndex);
+
                             if ( Character.isDigit(curChar) ) {
                                 currentWord += curChar;
                                 if ( curIndex > 0 && isInt(currentWord)
@@ -50,20 +51,19 @@ public class Program2 {
                                     currentWord = "-" + currentWord; 
                             }
 
-                            else if ( Character.isLetter(curChar) ) {
+                            else {
 
                                 if( isInt(currentWord) ) {
                                     try {
                                         total += Integer.parseInt(currentWord);
                                     } catch (NumberFormatException eNF) {}
-                                    currentWord = "" + curChar;
+                                    currentWord = "";
                                 }
-                                else
+
+                                if (Character.isLetter(curChar) || !currentWord.isEmpty())
                                     currentWord += curChar;
+
                             }
-                            
-                            else if (!currentWord.isEmpty())
-                                currentWord += curChar;
 
                             curIndex++;
 

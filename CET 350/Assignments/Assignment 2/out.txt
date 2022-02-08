@@ -1,8 +1,2 @@
-he--''llo	1
-wo..rld	1
-h'ow	9
-a\re	9
-you	1
-sd	1
-Unique words: 6
-Integer Sum: 58
+Unique words: 0
+Integer Sum: 18
