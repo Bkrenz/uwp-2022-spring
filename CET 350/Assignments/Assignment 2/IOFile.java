@@ -20,11 +20,13 @@ public class IOFile
 		// Check if any of the file names were provided on the command line
         switch (cmdArgs.length) {
 
-			case 2:
-				fileNames[1] = cmdArgs[1];
-			
 			case 1:
 				fileNames[0] = cmdArgs[0];
+				break;
+			
+			case 2:
+				fileNames[0] = cmdArgs[0];
+				fileNames[1] = cmdArgs[1];
 				break;
 
 			default:
@@ -36,12 +38,12 @@ public class IOFile
 		while ( dontQuit && !this.FileExist(fileNames[0])) {
 
 			System.out.println("\nInvalid input file name. To quit, leave input empty.");
-			System.out.println("Please input a new input name: ");
+			System.out.println("Please input a new input file name: ");
 
 			try {
 
 				fileNames[0] = inputReader.readLine();
-				if ( fileNames[0].isBlank() )
+				if ( fileNames[0].isEmpty() )
 					dontQuit = false;
 
 			} catch (IOException eIO) {
@@ -50,12 +52,13 @@ public class IOFile
 		}
 
 		// If the output file name is not valid, ask the user for a new name or to quit
-		boolean menuInput, validOutput = false;
+		boolean continueMenuInput, validOutput = false;
 		while ( dontQuit && !validOutput) {
 
+			// The file name is valid, but already exists
 			if (!fileNames[0].equals(fileNames[1]) && this.FileExist(fileNames[1])) {
-				menuInput = true;
-				while (menuInput) {
+				continueMenuInput = true;
+				while (continueMenuInput) {
 				
 					System.out.println("\nFile already exists. Please enter a number from the below menu: ");
 					System.out.println("\t1. Input new name.");
@@ -67,10 +70,11 @@ public class IOFile
 						switch(Integer.parseInt(inputReader.readLine())) {
 
 							case 1: // User wants to enter a new name
+								fileNames[1] = "";
 								break;
 
 							case 2: // User wants to backup the file then overwrite
-								this.FileBackup(fileNames[1], ".bak");
+								this.FileBackup(fileNames[1], "bak");
 								validOutput = true;
 								break;
 
@@ -80,13 +84,13 @@ public class IOFile
 
 							case 4: // User wants to quit
 								dontQuit = false;
-								menuInput = false;
 								break;
 
 							default:
 								System.err.println("Invalid entry, try again.");
 
 						}
+						continueMenuInput = false;
 					} catch (IOException eIO) {
 						System.out.println("Error getting input:\n" + eIO.toString());
 					} catch (NumberFormatException eNumForm) {
@@ -94,14 +98,23 @@ public class IOFile
 					}
 		
 				}
-			} else {
+			}
+			
+			// The output file name is valid and the file does not exist
+			else if (!fileNames[0].equals(fileNames[1]) && !this.FileExist(fileNames[1]) && !fileNames[1].isEmpty()) {
+				dontQuit = true;
+				validOutput = true;
+			} 
+
+			// The output file name is not a valid file name
+			else {
 				System.out.println("\nInvalid output file name. To quit, leave input empty.");
 				System.out.println("Please input a new output name.");
 
 				try {
 
 					fileNames[1] = inputReader.readLine();
-					if ( fileNames[1].isBlank() )
+					if ( fileNames[1].isEmpty() )
 						dontQuit = false;
 
 				} catch (IOException eIO) {

@@ -8,24 +8,45 @@
  */
 
 import java.io.*;
+import java.util.StringTokenizer;
 
 public class Program2 {
 
     public static void main(String[] args)
     {
-        /**
-         * We know the size of this array will be 2, and the first index is the input file name
-         * and the second index is the output file name. Initializing in this fashion instead of
-         * using "new String[2]" is a less verbose way of initializating this array with empty strings,
-         * helping to prevent null errors.
-         */
-        String[] fileNames = {"", ""};
-        
-        
+        String[] fileNames = new String[2];
         IOFile ioFileHandler = new IOFile();
+        StringTokenizer tokenizer;
+
+        BufferedReader inputReader;
+        PrintWriter outputWriter;
+
+        Word[] words = new Word[100];
+        
 
         if( ioFileHandler.getNames(args, fileNames) )
         {
+            inputReader = ioFileHandler.openInputFile(fileNames[0]);
+            outputWriter = ioFileHandler.openOutputFile(fileNames[1]);
+
+            try {
+
+                // For each line, read it in and parse the tokens
+                while (inputReader.ready()) {
+                    tokenizer = new StringTokenizer(inputReader.readLine(), "\t\n\r ");
+                    while(tokenizer.hasMoreTokens())
+                    {
+                        
+                    }
+                }
+
+                // Close the Files
+                inputReader.close();
+                outputWriter.close();
+
+            } catch (IOException eIO) {
+                System.err.println(eIO.toString());
+            }
             
         }
 
