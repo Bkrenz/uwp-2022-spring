@@ -1,2 +1,6 @@
-Unique words: 0
-Integer Sum: 18
+asl;dk	1
+gas;d'	1
+asde3fx	1
+x-34	1
+Unique words: 4
+Integer Sum: 36
