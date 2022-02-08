@@ -78,7 +78,7 @@ public class Program2 {
                         curIndex = Word.findWord(words, currentWord, wordCount);
                         if (curIndex > 0)
                             words[curIndex].addOne();
-                        else if(!isInt(currentWord)){
+                        else if(!isInt(currentWord) && !currentWord.isEmpty()){
                             words[wordCount] = new Word(currentWord);
                             wordCount++;
                         }
