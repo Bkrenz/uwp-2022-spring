@@ -48,13 +48,18 @@ public class Program2 {
                             // Check if the previous character was a '-' to check if this number should be negative
                             if ( Character.isDigit(curChar) ) {
                                 currentWord += curChar;
+
+                                // Check for negative
                                 if ( curIndex > 0 && isInt(currentWord)
                                     && (currentToken.charAt(curIndex - 1) == '-') )
                                     currentWord = "-" + currentWord; 
                             }
 
+                            // If it's not a letter
                             else {
 
+                                // If the word is a number, we just found the end of the number and need to add
+                                // the number to the total, and start a new word
                                 if( isInt(currentWord) ) {
                                     try {
                                         total += Integer.parseInt(currentWord);
@@ -62,6 +67,7 @@ public class Program2 {
                                     currentWord = "";
                                 }
 
+                                // If it's a letter, or the word isn't empty, we just append the character
                                 if (Character.isLetter(curChar) || !currentWord.isEmpty())
                                     currentWord += curChar;
 
@@ -71,7 +77,7 @@ public class Program2 {
 
                         }
                         
-                        // If the 
+                        // If the current word is a number, add it to the total
                         if( isInt(currentWord) ) {
                             try {
                                 total += Integer.parseInt(currentWord);

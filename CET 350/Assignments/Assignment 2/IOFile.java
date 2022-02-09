@@ -76,7 +76,7 @@ public class IOFile
 				continueMenuInput = true;
 				while (continueMenuInput) {
 				
-					System.out.println("\nFile already exists. Please enter a number from the below menu: ");
+					System.out.println("\nOutput File already exists. Please enter a number from the below menu: ");
 					System.out.println("\t1. Input new name.");
 					System.out.println("\t2. Back up file, then overwrite.");
 					System.out.println("\t3. Overwrite file.");
