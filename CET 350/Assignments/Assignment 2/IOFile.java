@@ -40,7 +40,7 @@ public class IOFile
 		}
 
 		// If the input file name is not valid, ask the user for a new name or to quit
-		while ( dontQuit && !IOFile.FileExist(fileNames[0])) {
+		while ( dontQuit && !IOFile.FileExist(fileNames[0]) && IOFile.FileExtension(fileNames[0]).equals("txt")) {
 
 			System.out.println("\nValid input file name not given. To quit, leave input empty.");
 			System.out.print("Please input a new input file name: ");
