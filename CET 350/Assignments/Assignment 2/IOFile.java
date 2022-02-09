@@ -42,7 +42,7 @@ public class IOFile
 		// If the input file name is not valid, ask the user for a new name or to quit
 		while ( dontQuit && !IOFile.FileExist(fileNames[0])) {
 
-			System.out.println("\nInvalid input file name. To quit, leave input empty.");
+			System.out.println("\nValid input file name not given. To quit, leave input empty.");
 			System.out.print("Please input a new input file name: ");
 
 			try {
@@ -121,8 +121,8 @@ public class IOFile
 
 			// The output file name is not a valid file name
 			else {
-				System.out.println("\nInvalid output file name. To quit, leave input empty.");
-				System.out.print("Please input a new output name.");
+				System.out.println("\nValid output file name not given. To quit, leave input empty.");
+				System.out.print("Please input a new output name: ");
 
 				try {
 

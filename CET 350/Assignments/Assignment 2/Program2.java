@@ -44,6 +44,8 @@ public class Program2 {
                         while ( curIndex < currentToken.length() ) {
                             curChar = currentToken.charAt(curIndex);
 
+                            // If the current character is a number it gets appended in all cases
+                            // Check if the previous character was a '-' to check if this number should be negative
                             if ( Character.isDigit(curChar) ) {
                                 currentWord += curChar;
                                 if ( curIndex > 0 && isInt(currentWord)
@@ -69,14 +71,16 @@ public class Program2 {
 
                         }
                         
+                        // If the 
                         if( isInt(currentWord) ) {
                             try {
                                 total += Integer.parseInt(currentWord);
                             } catch (NumberFormatException eNF) {}
                         }
 
+                        // Add this word to the words list
                         curIndex = Word.findWord(words, currentWord, wordCount);
-                        if (curIndex > 0)
+                        if (curIndex >= 0)
                             words[curIndex].addOne();
                         else if(!isInt(currentWord) && !currentWord.isEmpty()){
                             words[wordCount] = new Word(currentWord);
