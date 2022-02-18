@@ -1,3 +1,0 @@
-a	6
-Unique words: 1
-Integer Sum: 0
