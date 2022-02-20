@@ -1,0 +1,54 @@
+\documentclass[12pt]{article}
+
+\title{CSC 455 - Assignment 4}
+\author{Robert Krency}
+\date{\today}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=20mm, top=20mm, right=20mm, bottom=20mm}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+\onehalfspacing
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\maketitle
+
+\subsubsection*{A. Static Scoping}
+
+\begin{enumerate}
+    \item sub1 - local x
+    \item sub2 - main's x
+    \item sub3 - main's x
+\end{enumerate}
+
+\subsubsection*{A. Dynamic Scoping}
+
+\begin{enumerate}
+    \item sub1 - local x
+    \item sub2 - sub1's x
+    \item sub3 - main's x
+\end{enumerate}
+
+\end{document}
+
