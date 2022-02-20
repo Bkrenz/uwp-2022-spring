@@ -1,4 +1,16 @@
-package GUIFileCopy;
+/* Known Bug list:
+ * 
+ * going too far back into the parent directory breaks the program, i think we aren't supposed to be able to go back that far
+ * copying files still doesn't work at all
+ * my .txt's aren't showing up in the list
+ * selecting target removes removes part of the directory (might be intentional, ill have to look at what this is supposed to do)
+ * the pack function shrinks the screen, it is currently commented out
+ * I don't know if this works with args[], I haven't tested it yet, not sure how you do that on eclipse
+ * 
+ * NOT A BUG: the +'s seem buggy, but I actually think they are working how he wants them
+ */
+
+
 
 import java.io.*;
 import java.awt.*;
@@ -36,6 +48,8 @@ public class Main extends Frame implements WindowListener, ActionListener
 	/////////////////////////  main   ///////////////////////////
 	public static void main(String[] args)
 	{
+		
+		
 		if(args.length > 0)
 		{
 			File dir = new File(args[0]);
@@ -59,25 +73,20 @@ public class Main extends Frame implements WindowListener, ActionListener
 	Main(File dir)
 	{
 		curDir = dir;			//set current directory to starting directory
-		Source = true;			//set flags
-		Target = true;
-		OutFile = true;
-		
-		
-		//////////////////////////    Making Initial Frame ///////////////////////////////
-		//Notes: 	listeners still need to be added
-		//			display method needs added
-		//			this.pack() causes problems at the moment, just makes the screen small
-		//			are source, target, and outfile flags automatically set?
+		Source = false;			//set flags to false
+		Target = false;
+		OutFile = false;
 		
 		
 		//update title
 		this.setTitle(curDir.getAbsolutePath());
 		
+		//add action listeners
 		TargetButton.addActionListener(this);
 		OKButton.addActionListener(this);
 		TargetFileNameTF.addActionListener(this);
 		FileList.addActionListener(this);
+		
 		
 		
 		
@@ -161,9 +170,9 @@ public class Main extends Frame implements WindowListener, ActionListener
 	{
 		if(name == null)
 		{
-			
+			//skip the else statements if null
 		}
-		else if(name.equals("..."))			// entering "..." lets the user go back to the parent directory
+		else if(name.equals(".."))			// this is part is a bit confusing right now, we can go back to this later
 		{
 			curDir = new File(curDir.getParent());
 		}
@@ -176,13 +185,13 @@ public class Main extends Frame implements WindowListener, ActionListener
 			}
 			else if(!Source || !Target)
 			{
-				SourceLabel.setText(curDir.getAbsolutePath() + "\\" + name);
+				SourceFileLabel.setText(curDir.getAbsolutePath() + "\\" + name);
 				Source = true;
 				TargetButton.setEnabled(true);
 			}
 			else
 			{
-				FileNameLabel.setText(name);
+				TargetFileNameTF.setText(name);
 				OutFile = true;
 			}
 		}
@@ -219,6 +228,36 @@ public class Main extends Frame implements WindowListener, ActionListener
 		
 	}
 
+	///////////////////////////////  Copy File  ////////////////////////////////////////////
+	void CopyFile()
+	{
+		if(Source && Target && OutFile)
+		{
+			int c;
+			
+			try
+			{
+				BufferedReader infile = new BufferedReader(new FileReader(SourceFileLabel.getText()));
+				PrintWriter outfile = new PrintWriter(new FileWriter(TargetFileNameTF.getText()));
+				
+				//test to see if file will be overwritten, and provide an appropriate message if so
+				while((c = infile.read()) != -1)
+				{
+					outfile.write(c);
+				}
+			}
+			catch(IOException e)
+			{
+				MessagesLabel.setText("IOException");
+			}
+
+		}
+	}
+	
+	
+	
+	
+	
 	/////////////////   Action Listener    //////////////////////
 	public void actionPerformed(ActionEvent e)
 	{
@@ -227,13 +266,13 @@ public class Main extends Frame implements WindowListener, ActionListener
 		
 		if(source == TargetFileNameTF)
 		{
-			MessagesLabel.setText("a");
+			MessagesLabel.setText("");
 			filename = TargetFileNameTF.getText();
 			
 			if(filename.length() != 0)
 			{
 				OutFile = true;
-				//CopyFile();                        still needs added
+				CopyFile();
 			}
 			else
 			{
@@ -243,13 +282,13 @@ public class Main extends Frame implements WindowListener, ActionListener
 		
 		if(source == OKButton)
 		{
-			MessagesLabel.setText("b");
+			MessagesLabel.setText("");
 			filename = TargetFileNameTF.getText();
 			
 			if(filename.length() != 0)
 			{
 				OutFile = true;
-				//CopyFile();                        still needs added
+				CopyFile();
 			}
 			else
 			{
@@ -259,14 +298,14 @@ public class Main extends Frame implements WindowListener, ActionListener
 		
 		if(source == TargetButton)
 		{
-			MessagesLabel.setText("c");
+			MessagesLabel.setText("");
 			SourceFileLabel.setText(curDir.getAbsolutePath());
 			Target = true;
 		}
 		
 		if(source == FileList)
 		{
-			MessagesLabel.setText("d");
+			MessagesLabel.setText("");
 			String item = FileList.getSelectedItem();   //get the item that was selected
 			if(item != null)
 			{
