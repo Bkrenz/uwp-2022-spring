@@ -1,16 +1,22 @@
 /* Known Bug list:
  * 
- * going too far back into the parent directory breaks the program, i think we aren't supposed to be able to go back that far
- * copying files still doesn't work at all
- * my .txt's aren't showing up in the list
- * selecting target removes removes part of the directory (might be intentional, ill have to look at what this is supposed to do)
- * the pack function shrinks the screen, it is currently commented out
- * I don't know if this works with args[], I haven't tested it yet, not sure how you do that on eclipse
+ * (Error) Messages that need to be handled:
+ * 	- Source file not specified
+ * 	- Target file not specified
+ * 	- Output file ... exists, it will be overwritten
+ * 	- An IO Error occurred, terminating...
+ * 	- Error Opening File
+ * 	- File Copied
  * 
- * NOT A BUG: the +'s seem buggy, but I actually think they are working how he wants them
  */
 
-
+/**
+ * Program 3, CET 350
+ * 
+ * Group 5
+ * @author Robert Krency, kre1188@calu.edu
+ * @author Kevin Reisch, rei3819@calu.edu
+ */
 
 import java.io.*;
 import java.awt.*;
@@ -22,15 +28,15 @@ public class Main extends Frame implements WindowListener, ActionListener
 	
 	//globals:
 	File curDir;
-	String filenames[] = new String[100];			//also size 100? don't know yet
-	Boolean Source, Target, OutFile;
+	String sourceFileName, targetFileName, targetFileDirectory;
+	Boolean flagSourceFileSet, flagTargetDirectorySet, flagTargetFileSet;
 	
 	//create components
 	//labels
 	Label SourceLabel = new Label("Source:");			//don't change
 	Label SourceFileLabel = new Label();
 	Label FileNameLabel = new Label("File Name:");		//don't change
-	Label TargetDirectoryLabel = new Label("Select Target Directory: ");	//don't change
+	Label TargetDirectoryLabel = new Label("Select Target Directory: ");
 	Label MessagesLabel = new Label();
 	
 	//buttons
@@ -73,11 +79,15 @@ public class Main extends Frame implements WindowListener, ActionListener
 	Main(File dir)
 	{
 		curDir = dir;			//set current directory to starting directory
-		Source = false;			//set flags to false
-		Target = false;
-		OutFile = false;
 		
+		flagSourceFileSet = false;			//set flags to false
+		flagTargetDirectorySet = false;
+		flagTargetFileSet = false;
 		
+		this.sourceFileName = "";
+		this.targetFileDirectory = "";
+		this.targetFileName = "";
+
 		//update title
 		this.setTitle(curDir.getAbsolutePath());
 		
@@ -87,78 +97,77 @@ public class Main extends Frame implements WindowListener, ActionListener
 		TargetFileNameTF.addActionListener(this);
 		FileList.addActionListener(this);
 		
-		
-		
-		
 		//constraints and layout initialization
-		GridBagConstraints c = new GridBagConstraints();
-		GridBagLayout displ = new GridBagLayout();
+		GridBagConstraints constraints = new GridBagConstraints();
+		GridBagLayout layout = new GridBagLayout();
 		
-		double colWeight[] = {1, 9, 1};
-		double rowWeight[] = {10, 1, 1, 1, 1};
-		int colWidth[] = {1, 9, 1};
-		int rowHeight[]= {10, 1, 1, 1, 1};
+		layout.columnWeights = new double[] {1, 9, 1};
+		layout.rowWeights = new double[] {10, 1, 1, 1, 1};
+		layout.rowHeights = new int[] {10, 1, 1, 1, 1};
+		layout.columnWidths = new int[] {1, 9, 1};
+
+		this.setLayout(layout);
 		
-		displ.columnWeights = colWeight;
-		displ.rowWeights = rowWeight;
-		displ.rowHeights = rowHeight;
-		displ.columnWidths = colWidth;
-		
-		this.setBounds(20, 20, 900, 500);
-		this.setLayout(displ);
-		
-		c.anchor = GridBagConstraints.NORTHWEST;
-		c.weightx = 1;
-		c.weighty = 1;
-		c.gridwidth = 1;
-		c.gridheight = 1;
-		c.fill = GridBagConstraints.BOTH;
-		
+		constraints.anchor = GridBagConstraints.NORTHWEST;
+		constraints.weightx = 1;
+		constraints.weighty = 1;
+		constraints.gridwidth = 1;
+		constraints.gridheight = 1;
+		constraints.fill = GridBagConstraints.BOTH;
 		
 		//add components to GridBag
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.gridx = 0;
-		c.gridy = 0;
-		displ.setConstraints(FileList, c);
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		layout.setConstraints(FileList, constraints);
 		this.add(FileList);
 		
-		c.gridwidth = 1;
-		c.gridy = 1;
-		displ.setConstraints(SourceLabel, c);
+		constraints.gridwidth = 1;
+		constraints.gridy = 1;
+		layout.setConstraints(SourceLabel, constraints);
 		this.add(SourceLabel);
 		
-		c.gridy = 2;
-		displ.setConstraints(TargetButton, c);
+		constraints.gridy = 2;
+		layout.setConstraints(TargetButton, constraints);
 		TargetButton.setEnabled(false);
 		this.add(TargetButton);
 		
-		c.gridy = 3;
-		displ.setConstraints(FileNameLabel, c);
+		constraints.gridy = 3;
+		layout.setConstraints(FileNameLabel, constraints);
 		this.add(FileNameLabel);
 		
-		c.gridy = 4;
-		displ.setConstraints(MessagesLabel, c);
+		constraints.gridy = 4;
+		constraints.gridwidth = 3;
+		layout.setConstraints(MessagesLabel, constraints);
 		this.add(MessagesLabel);
 		
-		c.gridx = 1;
-		c.gridy = 1;
-		displ.setConstraints(SourceFileLabel, c);
+		constraints.gridx = 1;
+		constraints.gridy = 1;
+		constraints.gridwidth = 1;
+		layout.setConstraints(SourceFileLabel, constraints);
 		this.add(SourceFileLabel);
 		
-		c.gridy = 2;
-		displ.setConstraints(TargetDirectoryLabel, c);
+		constraints.gridy = 2;
+		layout.setConstraints(TargetDirectoryLabel, constraints);
 		this.add(TargetDirectoryLabel);
 		
-		c.gridy = 3;
-		displ.setConstraints(TargetFileNameTF, c);
+		constraints.gridy = 3;
+		layout.setConstraints(TargetFileNameTF, constraints);
 		this.add(TargetFileNameTF);
 		
-		c.gridx = 2;
-		displ.setConstraints(OKButton,c);
+		constraints.gridx = 2;
+		layout.setConstraints(OKButton,constraints);
 		this.add(OKButton);
 		
-		
-		//this.pack();			//he wants this in there, but it makes the window start out small
+		// We wanted this.pack() in here, but it turns out
+		// this makes it really small, so we resized it 
+		// afterwards during testing, but
+		// have since commented that out. 
+		this.setBounds(0, 0, 900, 500);
+		this.pack();
+		// this.setBounds(0, 0, 900, 500);
+
+		// Show the window and set up the display
 		this.setVisible(true);
 		this.addWindowListener(this);
 		display(null);		//still needs created
@@ -181,79 +190,90 @@ public class Main extends Frame implements WindowListener, ActionListener
 			File f = new File(curDir, name);
 			if(f.isDirectory())
 			{
-				curDir = new File(curDir, name);
+				curDir = f;
 			}
-			else if(!Source || !Target)
+			else if(!flagSourceFileSet || !flagTargetDirectorySet)
 			{
-				SourceFileLabel.setText(curDir.getAbsolutePath() + "\\" + name);
-				Source = true;
+				this.setSourceFile(curDir.getAbsolutePath() + "\\" + name);
 				TargetButton.setEnabled(true);
 			}
 			else
 			{
-				TargetFileNameTF.setText(name);
-				OutFile = true;
+				this.setTargetFile(name);
 			}
 		}
 		
-		filenames = curDir.list();
+		// Update the title
 		this.setTitle(curDir.getAbsolutePath());
-		
-		for(int i = 0; i < filenames.length; i++)
-		{
-			File f = new File(curDir, filenames[i]);
-			if(f.isDirectory())
-			{
-				String[] children = f.list();
-				for(int ii = 0; ii < children.length; ii++)
-				{
-					if(new File(f, children[ii]).isDirectory())
-					{
-						filenames[i] += " +";
-						ii = children.length;
-					}
-				}
-			}
-		}
-		
-		FileList.removeAll();
-		if(curDir.getParent() != null)
-		{
-			FileList.add("..");
-		}
-		for(int i = 0; i < filenames.length; i++)
-		{
-			FileList.add(filenames[i]);
-		}
-		
+
+		// Clear the FileList
+		this.FileList.removeAll();
+
+		// Check for a parent directory
+		if (this.curDir.getParent() != null)
+			this.FileList.add("..");
+
+		// Add all children files and directories
+		// 	If a child directory contains subdirectories, add a + to its name in the list
+		String directoryModifier;
+		if (this.curDir.listFiles() != null)
+			for (File child : this.curDir.listFiles()) {
+				directoryModifier = "";
+				if (child.isDirectory() && !child.isHidden() && child.listFiles() != null) 
+					for (File subChild : child.listFiles())
+						if (subChild.isDirectory())
+							directoryModifier = " +";
+				
+				this.FileList.add(child.getName() + directoryModifier);
+			}		
 	}
 
 	///////////////////////////////  Copy File  ////////////////////////////////////////////
 	void CopyFile()
 	{
-		if(Source && Target && OutFile)
+		if(flagSourceFileSet && flagTargetDirectorySet && flagTargetFileSet)
 		{
 			int c;
 			
 			try
 			{
-				BufferedReader infile = new BufferedReader(new FileReader(SourceFileLabel.getText()));
-				PrintWriter outfile = new PrintWriter(new FileWriter(TargetFileNameTF.getText()));
+				File inputFile = new File(this.sourceFileName);
+				File outputFile = new File(this.targetFileDirectory, this.targetFileName);
+
+				if (outputFile.isFile())
+					this.setMessageLabel("Output file exists, overwriting...");
+
+				BufferedReader infile = new BufferedReader(new FileReader(inputFile));
+				PrintWriter outfile = new PrintWriter(new FileWriter(outputFile));
 				
-				//test to see if file will be overwritten, and provide an appropriate message if so
 				while((c = infile.read()) != -1)
 				{
 					outfile.write(c);
 				}
+				
+				outfile.close();
+				infile.close();
+
+				// Reset the state, keeping the current directory
+				this.setSourceFile("");
+				this.setTargetDirectory("Set Target Directory:");
+				this.setTargetFile("");
+				this.TargetButton.setEnabled(false);
+
+				this.flagSourceFileSet = false;
+				this.flagTargetDirectorySet = false;
+				this.flagTargetFileSet = false;
+
+				this.setMessageLabel("File copied successfully.");
+
 			}
 			catch(IOException e)
 			{
 				MessagesLabel.setText("IOException");
 			}
-
+			
 		}
 	}
-	
 	
 	
 	
@@ -264,67 +284,88 @@ public class Main extends Frame implements WindowListener, ActionListener
 		String filename;
 		Object source = e.getSource();
 		
-		if(source == TargetFileNameTF)
+		if(source == TargetFileNameTF || source == OKButton)
 		{
-			MessagesLabel.setText("");
+			this.clearMessageLabel();
 			filename = TargetFileNameTF.getText();
 			
 			if(filename.length() != 0)
 			{
-				OutFile = true;
+				this.setTargetFile(filename);
 				CopyFile();
 			}
 			else
 			{
-				MessagesLabel.setText(MessagesLabel.getText() + " Target file not specified.");
+				this.setMessageLabel("Target file not specified.");
 			}
 		}
 		
-		if(source == OKButton)
+		else if(source == TargetButton)
 		{
-			MessagesLabel.setText("");
-			filename = TargetFileNameTF.getText();
-			
-			if(filename.length() != 0)
-			{
-				OutFile = true;
-				CopyFile();
-			}
-			else
-			{
-				MessagesLabel.setText(MessagesLabel.getText() + " Target file not specified.");
-			}
+			this.clearMessageLabel();
+			this.setTargetDirectory(this.curDir.getAbsolutePath());
 		}
 		
-		if(source == TargetButton)
+		else if(source == FileList)
 		{
-			MessagesLabel.setText("");
-			SourceFileLabel.setText(curDir.getAbsolutePath());
-			Target = true;
-		}
-		
-		if(source == FileList)
-		{
-			MessagesLabel.setText("");
+			this.clearMessageLabel();
 			String item = FileList.getSelectedItem();   //get the item that was selected
 			if(item != null)
 			{
-				if(item.endsWith(" +"))			//trim the " +" off of the directory name
-				{
+				// Trim the " +" off of the directory name
+				if(item.endsWith(" +"))			
 					item = item.substring(0, item.length()-2);
-				}
-				display(item);					//display the new directory
+
+				// Display the new directory
+				display(item);
 			}
 		}
+	}
+
+
+	private void setSourceFile(String name) {
+		this.sourceFileName = name;
+		this.SourceFileLabel.setText(name);
+		this.flagSourceFileSet = true;
+	}
+
+	private void setTargetFile(String name) {
+		if (!((new File(this.targetFileDirectory, name).getAbsolutePath()).equals(this.sourceFileName))) {
+			this.targetFileName = name;
+			this.TargetFileNameTF.setText(name);
+			this.flagTargetFileSet = true;
+		}
+		else
+			this.setMessageLabel("Target file cannot be the same as Source File.");
+	}
+
+	private void setTargetDirectory(String name) {
+		this.targetFileDirectory = name;
+		this.TargetDirectoryLabel.setText(name);
+		this.flagTargetDirectorySet = true;
+	}
+
+	private void setMessageLabel(String message) {
+		this.MessagesLabel.setText(message);
+	}
+
+	private void clearMessageLabel() {
+		this.setMessageLabel("");
 	}
 	
 	
 	
 	
-	//////////////WindowListener methods  //////////////////////////
+	////////////// WindowListener methods //////////////////////////
 	public void windowClosing(WindowEvent e)
 	{
 		this.removeWindowListener(this);
+		
+		this.FileList.removeActionListener(this);
+		this.TargetButton.removeActionListener(this);
+		this.OKButton.removeActionListener(this);
+		this.TargetFileNameTF.removeActionListener(this);
+		
 		this.dispose();
 	}
 	
