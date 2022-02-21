@@ -238,7 +238,7 @@ public class Main extends Frame implements WindowListener, ActionListener
 			try
 			{
 				File inputFile = new File(this.sourceFileName);
-				File outputFile = new File(this.targetFileName);
+				File outputFile = new File(this.targetFileDirectory, this.targetFileName);
 
 				if (outputFile.isFile())
 					this.setMessageLabel("Output file exists, overwriting...");
