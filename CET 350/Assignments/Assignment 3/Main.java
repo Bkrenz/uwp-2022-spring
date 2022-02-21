@@ -1,15 +1,22 @@
 /* Known Bug list:
  * 
- * going too far back into the parent directory breaks the program, i think we aren't supposed to be able to go back that far
- * selecting target removes removes part of the directory (might be intentional, ill have to look at what this is supposed to do)
- * 		the part that does this is currently commented out
- * the pack function shrinks the screen, it is currently commented out
- * I don't know if this works with args[], I haven't tested it yet, not sure how you do that on eclipse
+ * (Error) Messages that need to be handled:
+ * 	- Source file not specified
+ * 	- Target file not specified
+ * 	- Output file ... exists, it will be overwritten
+ * 	- An IO Error occurred, terminating...
+ * 	- Error Opening File
+ * 	- File Copied
  * 
- * NOT A BUG: the +'s seem buggy, but I actually think they are working how he wants them
  */
 
-
+/**
+ * Program 3, CET 350
+ * 
+ * Group 5
+ * @author Robert Krency, kre1188@calu.edu
+ * @author Kevin Reisch, rei3819@calu.edu
+ */
 
 import java.io.*;
 import java.awt.*;
@@ -29,7 +36,7 @@ public class Main extends Frame implements WindowListener, ActionListener
 	Label SourceLabel = new Label("Source:");			//don't change
 	Label SourceFileLabel = new Label();
 	Label FileNameLabel = new Label("File Name:");		//don't change
-	Label TargetDirectoryLabel = new Label("Select Target Directory: ");	//don't change
+	Label TargetDirectoryLabel = new Label("Select Target Directory: ");
 	Label MessagesLabel = new Label();
 	
 	//buttons
@@ -152,10 +159,13 @@ public class Main extends Frame implements WindowListener, ActionListener
 		layout.setConstraints(OKButton,constraints);
 		this.add(OKButton);
 		
-		// Dr. Pyzdrowski, we realize you wanted this.pack() in here, but it turns out
-		// this makes it really small, so we resized it afterwards. 
-		this.pack();
+		// We wanted this.pack() in here, but it turns out
+		// this makes it really small, so we resized it 
+		// afterwards during testing, but
+		// have since commented that out. 
 		this.setBounds(0, 0, 900, 500);
+		this.pack();
+		// this.setBounds(0, 0, 900, 500);
 
 		// Show the window and set up the display
 		this.setVisible(true);
@@ -253,6 +263,8 @@ public class Main extends Frame implements WindowListener, ActionListener
 				this.flagSourceFileSet = false;
 				this.flagTargetDirectorySet = false;
 				this.flagTargetFileSet = false;
+
+				this.setMessageLabel("File copied successfully.");
 
 			}
 			catch(IOException e)
