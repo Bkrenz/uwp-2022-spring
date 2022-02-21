@@ -15,6 +15,7 @@ INCLUDE Irvine32.inc
 
 ; Output Strings
 msg_Details				BYTE	"Welcome to the RPN Calculator.", 0
+msg_GetInput			BYTE	"Enter input: ", 0
 msg_empty				BYTE    "The stack is empty.",0
 msg_Quit				BYTE	"Exiting...", 0
 
@@ -26,10 +27,10 @@ stackSizeMax			DWORD	8
 ; Input Buffer
 buffer					BYTE	21 DUP(0)
 byteCount				dword	?
-index					dword	0
 
-; Flags
-
+; Indices
+displayIndex			dword	0
+rollIndex				dword	0
 
 
 .code
@@ -62,7 +63,7 @@ GetInput:
 ; Parse the input command
 ParseInput:
 	
-	call ParseIntger32		; Parse input string as integer
+	call ParseInteger32		; Parse input string as integer
 	call PushStack
 	call DisplayStack
 	jmp GetInput
@@ -86,40 +87,41 @@ DisplayStack:
 	;		DisplayTopElement
 	;		RollStackDown
 	
-	mov ecx,0
-
+	mov displayIndex, 0
+	mov esi, OFFSET rpnStack
 	
-	DisplayLoop:
-	call DisplayTopElement
-	call RollStackDown
-	inc ecx
-	cmp ecx,StackSize
+DisplayLoop:
+	mov edi, displayIndex
+	mov eax, [esi+edi]
+	call WriteString
+	call Crlf
+	inc edi
+	mov displayIndex, edi
+	cmp edi, StackSize
 	jl DisplayLoop
 	ret
 
 ; Display the top element of the stack
-DisplayTopElement:				
-	mov eax, [rpnStack]				;move the top element to eax
-	call writeint 					;prints out the top stack 
-	call crlf
+DisplayTopElement:
+	mov esi, OFFSET rpnStack
+	mov eax, [esi]					;move the top element to eax
+	call WriteInt 					;prints out the top stack 
+	call Crlf
 	ret
 
 
 ; Exchange the top two elements on the stack
 ; Command: 'X'
 ExchangeTopTwoElements:
-	mov esi,0
-	mov [rpnStack+esi]
+	nop
 
 
 ; Negate the top element of the stack
 ; Command: 'N'
 NegateTopElement:
-	
-	mov esi,o
-	mov eax,[rpnStack+esi]
+	call PopStack
 	neg eax
-	mov [rnpStack+esi],eax
+	call PushStack
 	ret 
 	
 	
@@ -128,21 +130,45 @@ NegateTopElement:
 ; Roll the stack Up, only used positions
 ; Command: 'U'
 RollStackUp:
-	nop
+	cmp stackSize, 1
+	jle RollStackUpEnd
+	mov esi, OFFSET rpnStack
+	mov rollIndex, 0
+	mov edi, stackSize
+	dec edi
+	mov ebx, [esi+edi]
 
+RSULoop:
+	dec edi
+	mov eax, [esi+edi]
+	mov [esi+edi+1], eax
+	cmp edi, 0
+	jg RSULoop
+	mov [esi], ebx
+
+RollStackUpEnd:
+	ret
 
 ; Roll the stack Down, only used positions
 ; Command: 'D'
 RollStackDown:
+	cmp stackSize,1
+	jle RollStackDownEnd
+	mov esi, OFFSET rpnStack
+	mov ebx, [esi]
+	mov ecx, 0
 
-cmp StackSize,1
-je RollStackDownEnd
-
-mov esi,0
-mov 
+RSDLoop:
+	inc esi
+	mov eax, [esi]
+	mov [esi-1], eax
+	inc ecx
+	cmp ecx, stackSize
+	jl RSDLoop
+	mov [esi], ebx
 
 RollStackDownEnd:
-ret
+	ret
 
 
 ; Clear the stack
@@ -169,30 +195,42 @@ PerformOperation:
 PopStack:
 	; move top element to eax
 	; roll down the stack
-	nop
+	mov esi, OFFSET rpnStack
+	mov eax, [esi]
+	call RollStackDown
+	call DecreaseSize
+	ret
+
+DecreaseSize:
+	cmp stackSize, 0
+	je DecreaseSizeEnd
+	dec stackSize
+DecreaseSizeEnd:
+	ret
 
 
 ; Push eax onto the top of the stack
-	PushStack:
+PushStack:
 	; roll up the stack
 	call IncreaseSize
-	mov esi,0   			; move eax to top of stack
-	mov [rpnStack+esi],eax
+	call RollStackUp
+	mov esi, OFFSET rpnStack
+	mov [esi],eax
 	ret
 	
-	IncreaseSize:
+IncreaseSize:
 	cmp StackSize,8
 	je IncreaseSizeEnd
-	inc stackSize
-	
-	IncreaseSizeEnd:
+	inc stackSize	
+IncreaseSizeEnd:
 	ret
 	
-	Empty:
+Empty:
 	call crlf
 	mov edx, OFFSET msg_empty 			;print if the stack is empty 
-	call WritetSring
+	call WriteString
 	call crlf
+	ret
 
 
 ; Quit the program
