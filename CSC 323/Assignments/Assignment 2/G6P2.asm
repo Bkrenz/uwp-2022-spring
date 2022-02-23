@@ -20,13 +20,14 @@ msg_empty				BYTE    "The stack is empty.",0
 msg_Quit				BYTE	"Exiting...", 0
 
 ; Stack
-rpnStack				BYTE	8 dup(0)
+rpnStack				DWORD	8 DUP(0)
 stackSize				DWORD	0
 stackSizeMax			DWORD	8
 
 ; Input Buffer
 buffer					BYTE	21 DUP(0)
 byteCount				dword	?
+inputNum				dword	0
 
 ; Indices
 displayIndex			dword	0
@@ -38,6 +39,7 @@ main PROC
 	mov edx, OFFSET msg_Details				; Display welcome message
 	call WriteString
 	call Crlf
+
 
 
 GetInput:									
@@ -64,6 +66,7 @@ GetInput:
 ParseInput:
 	
 	call ParseInteger32		; Parse input string as integer
+	mov inputNum, eax
 	call PushStack
 	call DisplayStack
 	jmp GetInput
@@ -87,19 +90,19 @@ DisplayStack:
 	;		DisplayTopElement
 	;		RollStackDown
 	
-	mov displayIndex, 0
 	mov esi, OFFSET rpnStack
+	mov ecx, 0
 	
 DisplayLoop:
-	mov edi, displayIndex
-	mov eax, [esi+edi]
-	call WriteString
+	mov eax, [esi]
+	call WriteInt
 	call Crlf
-	inc edi
-	mov displayIndex, edi
-	cmp edi, StackSize
+	add esi, 4
+	inc ecx
+	cmp ecx, stackSize
 	jl DisplayLoop
 	ret
+	
 
 ; Display the top element of the stack
 DisplayTopElement:
@@ -131,19 +134,19 @@ NegateTopElement:
 ; Command: 'U'
 RollStackUp:
 	cmp stackSize, 1
-	jle RollStackUpEnd
-	mov esi, OFFSET rpnStack
-	mov rollIndex, 0
-	mov edi, stackSize
-	dec edi
-	mov ebx, [esi+edi]
+	jle RollStackUpEnd					; do nothing if stack is size <= 1
+	
+	mov esi, OFFSET rpnStack			; find start of stack
+	mov ebx, [esi]						; grab the first item
+	mov ecx, 2							; setup a counter
 
 RSULoop:
-	dec edi
-	mov eax, [esi+edi]
-	mov [esi+edi+1], eax
-	cmp edi, 0
-	jg RSULoop
+	mov eax, [esi+1]
+	mov [esi], eax
+	inc esi
+	inc ecx
+	cmp ecx, stackSize
+	jl RSULoop
 	mov [esi], ebx
 
 RollStackUpEnd:
@@ -152,21 +155,20 @@ RollStackUpEnd:
 ; Roll the stack Down, only used positions
 ; Command: 'D'
 RollStackDown:
-	cmp stackSize,1
+	cmp stackSize, 1
 	jle RollStackDownEnd
 	mov esi, OFFSET rpnStack
-	mov ebx, [esi]
-	mov ecx, 0
+	mov ecx, 7
+	mov edx, [esi+ecx*4]
 
 RSDLoop:
-	inc esi
-	mov eax, [esi]
-	mov [esi-1], eax
-	inc ecx
-	cmp ecx, stackSize
-	jl RSDLoop
-	mov [esi], ebx
-
+	mov eax, [esi+ecx*4-4]
+	mov [esi+ecx*4], eax
+	dec ecx
+	cmp ecx, 0
+	jge RSDLoop
+	mov [esi], edx
+	
 RollStackDownEnd:
 	ret
 
@@ -174,9 +176,8 @@ RollStackDownEnd:
 ; Clear the stack
 ; Command: 'C'
 ClearStack:
-	
-	
-	nop
+	mov stackSize, 0
+	ret
 	
 
 
@@ -197,7 +198,7 @@ PopStack:
 	; roll down the stack
 	mov esi, OFFSET rpnStack
 	mov eax, [esi]
-	call RollStackDown
+	call RollStackUp
 	call DecreaseSize
 	ret
 
@@ -213,18 +214,22 @@ DecreaseSizeEnd:
 PushStack:
 	; roll up the stack
 	call IncreaseSize
-	call RollStackUp
+	call RollStackDown
 	mov esi, OFFSET rpnStack
-	mov [esi],eax
+	mov eax, inputNum
+	mov [esi], eax
 	ret
 	
+; 
 IncreaseSize:
-	cmp StackSize,8
+	cmp StackSize, 8
 	je IncreaseSizeEnd
 	inc stackSize	
 IncreaseSizeEnd:
 	ret
 	
+
+; Print an error message if the stack is empty
 Empty:
 	call crlf
 	mov edx, OFFSET msg_empty 			;print if the stack is empty 
