@@ -28,6 +28,8 @@ stackSizeMax			DWORD	8
 buffer					BYTE	21 DUP(0)
 byteCount				dword	?
 inputNum				dword	0
+NULL equ 0
+TAB equ 9
 
 ; Indices
 displayIndex			dword	0
@@ -57,7 +59,99 @@ GetInput:
 	mov ecx, byteCount
 
 
-
+mov edi,0
+	Skip:
+		cmp edi,bytecount
+		jge EndLoop
+		mov al,buffer[edi]
+		cmp al,NULL
+		je EndLoop					;skiping Whitespace, Null and Tab 
+		cmp al,' '
+		je NextChar
+		cmp al,TAB
+		jne EndSkip
+			NextChar:
+			inc edi
+			jmp Skip
+				EndLoop:
+				mov al,-1
+				EndSkip:
+	
+	Switch:
+	mov al,-1
+	jeq EndCase
+	Case1: cmp al,'-'
+	jne Case2
+	inc edi
+	cmp edi,bytecount
+	jge CaseSub
+	mov al, buffer[edi]
+	cmp al,NULL
+	je CaseSub
+	cmp al,'0'
+	jl CaseSub
+	cmp al,'9'						;command handler 
+	jg CaseSub
+	Call NegNum
+	jmp EndCase
+	CaseSub:
+	Call Subtraction
+	jmp EndCase
+	Case2:
+	cmp al,'+'
+	jne Case3
+	call Addition
+	jmp EndCase
+	Case3:
+	cmp al,'*'
+	jne Case4
+	Call Multiplication
+	jmp Endcase
+	Case4: cmp al,'/'
+	jne Case5
+	Call Division
+	jmp EndCase
+	Case5:
+	cmp al,'X'
+	jne Case6
+	Call Exchange
+	jmp EndCase
+	Case6:
+	cmp al,'N'
+	jne Case7
+	Call Negation
+	jmp EndCase
+	case7:
+	cmp al,'U'
+	jne Case8
+	Call RollStackUp
+	jmp EndCase
+	Case8: 
+	cmp al,'D'
+	jne Case9
+	Call RollStackDown 
+	jmp EndCase
+	Case9:
+	cmp al,'V'
+	jne Case10
+	Call DisplayStack
+	jmp EndCase
+	Case10:
+	cmp al,'C'
+	jne Case11
+	Call ClearStack
+	jmp EndCase
+	Case11:
+	cmp al,'Q'
+	jne Case12
+	Call Quit
+	jmp EndCase
+	Default: 
+	mov edx,OFFSET msg_invalid
+	call writeString
+	Call Crlf
+	EndCase:
+	
 
 
 
@@ -183,7 +277,38 @@ ClearStack:
 
 ; Perform the input operation
 ; Possible operations: +, -, /, *
-PerformOperation:
+Addition:
+Call PopStack
+mov ebx,eax
+Call PopStack
+add eax,ebx
+Call PushStack
+ret
+
+Subtraction:
+Call PopStack
+mov ebx,eax
+Call PopStack 
+sub eax,ebx
+Call PushStack
+ret
+
+Multiplication:
+Call PopStack
+mov ebx,eax
+call PopStack
+mul eax,ebx
+Call PushStack
+ret
+
+Divison:
+Call PopStack
+mov ebx,eax
+Call PopStack
+div eax,ebx
+Call PushStack
+ret
+	
 	; pop, move eax to ebx
 	; pop,
 	; operate, operand 1 in eax, operand 2 in ebx, result in eax
