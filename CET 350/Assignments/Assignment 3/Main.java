@@ -1,15 +1,3 @@
-/* Known Bug list:
- * 
- * (Error) Messages that need to be handled:
- * 	- Source file not specified
- * 	- Target file not specified
- * 	- Output file ... exists, it will be overwritten
- * 	- An IO Error occurred, terminating...
- * 	- Error Opening File
- * 	- File Copied
- * 
- */
-
 /**
  * Program 3, CET 350
  * 
@@ -54,24 +42,20 @@ public class Main extends Frame implements WindowListener, ActionListener
 	/////////////////////////  main   ///////////////////////////
 	public static void main(String[] args)
 	{
-		
-		
-		if(args.length > 0)
+
+		// If the user supplies a valid directory on the command line,
+		// use that as the starting point. Otherwise, use the current
+		// working directory as the starting point.
+		File directory = new File(new File(System.getProperty("user.dir")).getAbsolutePath());
+
+		if (args.length > 0)
 		{
-			File dir = new File(args[0]);
-			if(!dir.isDirectory())
-			{
-				System.out.println("File is not a directory.");
-			}
-			else
-			{
-				new Main(new File(dir.getAbsolutePath()));
-			}
+			File inputDirectory = new File(args[0]);
+			if (inputDirectory.isDirectory())
+				directory = inputDirectory;
 		}
-		else
-		{
-			new Main(new File(new File(System.getProperty("user.dir")).getAbsolutePath()));
-		}
+
+		new Main(directory);
 	}
 	
 	
@@ -107,6 +91,7 @@ public class Main extends Frame implements WindowListener, ActionListener
 		layout.columnWidths = new int[] {1, 9, 1};
 
 		this.setLayout(layout);
+		FileList.setSize(300, 700);
 		
 		constraints.anchor = GridBagConstraints.NORTHWEST;
 		constraints.weightx = 1;
@@ -114,6 +99,7 @@ public class Main extends Frame implements WindowListener, ActionListener
 		constraints.gridwidth = 1;
 		constraints.gridheight = 1;
 		constraints.fill = GridBagConstraints.BOTH;
+		
 		
 		//add components to GridBag
 		constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -159,18 +145,16 @@ public class Main extends Frame implements WindowListener, ActionListener
 		layout.setConstraints(OKButton,constraints);
 		this.add(OKButton);
 		
-		// We wanted this.pack() in here, but it turns out
-		// this makes it really small, so we resized it 
-		// afterwards during testing, but
-		// have since commented that out. 
+		
 		this.setBounds(0, 0, 900, 500);
-		this.pack();
-		// this.setBounds(0, 0, 900, 500);
+		//this.pack();
+		//the program resizes correctly without it, so we excluded it
+
 
 		// Show the window and set up the display
 		this.setVisible(true);
 		this.addWindowListener(this);
-		display(null);		//still needs created
+		display(null);
 	}
 	
 	
@@ -181,11 +165,11 @@ public class Main extends Frame implements WindowListener, ActionListener
 		{
 			//skip the else statements if null
 		}
-		else if(name.equals(".."))			// this is part is a bit confusing right now, we can go back to this later
+		else if(name.equals(".."))			// go to parent directory
 		{
 			curDir = new File(curDir.getParent());
 		}
-		else
+		else			//go to subdirectory or file
 		{
 			File f = new File(curDir, name);
 			if(f.isDirectory())
@@ -219,7 +203,7 @@ public class Main extends Frame implements WindowListener, ActionListener
 		if (this.curDir.listFiles() != null)
 			for (File child : this.curDir.listFiles()) {
 				directoryModifier = "";
-				if (child.isDirectory() && !child.isHidden() && child.listFiles() != null) 
+				if (child.isDirectory() && !child.isHidden() && child.listFiles() != null) 	//lets you access root directories
 					for (File subChild : child.listFiles())
 						if (subChild.isDirectory())
 							directoryModifier = " +";
@@ -237,41 +221,57 @@ public class Main extends Frame implements WindowListener, ActionListener
 			
 			try
 			{
+				//create input and output files
 				File inputFile = new File(this.sourceFileName);
 				File outputFile = new File(this.targetFileDirectory, this.targetFileName);
-
-				if (outputFile.isFile())
+				
+				//premptive success label, program will catch error of it won't copy
+				if(outputFile.exists())
+				{
 					this.setMessageLabel("Output file exists, overwriting...");
+				}
+				else
+				{
+					this.setMessageLabel("File copied successfully.");
+				}
 
+				//open files
 				BufferedReader infile = new BufferedReader(new FileReader(inputFile));
 				PrintWriter outfile = new PrintWriter(new FileWriter(outputFile));
 				
+				//copy file
 				while((c = infile.read()) != -1)
 				{
 					outfile.write(c);
 				}
 				
+				//close files
 				outfile.close();
 				infile.close();
 
 				// Reset the state, keeping the current directory
 				this.setSourceFile("");
-				this.setTargetDirectory("Set Target Directory:");
+				this.setTargetDirectory("Select Target Directory:");
 				this.setTargetFile("");
 				this.TargetButton.setEnabled(false);
 
+				//reset flags
 				this.flagSourceFileSet = false;
 				this.flagTargetDirectorySet = false;
 				this.flagTargetFileSet = false;
-
-				this.setMessageLabel("File copied successfully.");
-
+				
+			}
+			catch(FileNotFoundException e)
+			{
+				MessagesLabel.setText("Error opening file.");
 			}
 			catch(IOException e)
 			{
-				MessagesLabel.setText("IOException");
+				MessagesLabel.setText("An IO Error occurred.");
 			}
 			
+			//update the list to show new files
+			display(null);
 		}
 	}
 	
@@ -284,12 +284,18 @@ public class Main extends Frame implements WindowListener, ActionListener
 		String filename;
 		Object source = e.getSource();
 		
+		//pressing enter and ok do the same thing
+		//activates file copy
 		if(source == TargetFileNameTF || source == OKButton)
 		{
 			this.clearMessageLabel();
 			filename = TargetFileNameTF.getText();
 			
-			if(filename.length() != 0)
+			if(SourceFileLabel.getText().length() == 0 || flagTargetDirectorySet == false)
+			{
+				this.setMessageLabel("Source file not specified.");
+			}
+			else if(filename.length() != 0)
 			{
 				this.setTargetFile(filename);
 				CopyFile();
@@ -300,12 +306,14 @@ public class Main extends Frame implements WindowListener, ActionListener
 			}
 		}
 		
+		//set to target mode, and update target path
 		else if(source == TargetButton)
 		{
 			this.clearMessageLabel();
 			this.setTargetDirectory(this.curDir.getAbsolutePath());
 		}
 		
+		//update the file list
 		else if(source == FileList)
 		{
 			this.clearMessageLabel();
@@ -322,13 +330,15 @@ public class Main extends Frame implements WindowListener, ActionListener
 		}
 	}
 
-
+////////////////////////// Other Methods  //////////////////////////////////////////
 	private void setSourceFile(String name) {
 		this.sourceFileName = name;
 		this.SourceFileLabel.setText(name);
 		this.flagSourceFileSet = true;
 	}
 
+	//sets target file name and flag
+	//target and source file can't be the same
 	private void setTargetFile(String name) {
 		if (!((new File(this.targetFileDirectory, name).getAbsolutePath()).equals(this.sourceFileName))) {
 			this.targetFileName = name;
@@ -339,21 +349,23 @@ public class Main extends Frame implements WindowListener, ActionListener
 			this.setMessageLabel("Target file cannot be the same as Source File.");
 	}
 
+	//updates target directory and flag
 	private void setTargetDirectory(String name) {
 		this.targetFileDirectory = name;
 		this.TargetDirectoryLabel.setText(name);
 		this.flagTargetDirectorySet = true;
 	}
 
+	//sets the text of the message label
 	private void setMessageLabel(String message) {
 		this.MessagesLabel.setText(message);
 	}
 
+	//clears the message label
 	private void clearMessageLabel() {
 		this.setMessageLabel("");
 	}
-	
-	
+		
 	
 	
 	////////////// WindowListener methods //////////////////////////
