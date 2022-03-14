@@ -1,0 +1,127 @@
+\documentclass[12pt]{article}
+
+\title{CSC 455 - Project 1}
+\author{Robert Krency}
+\date{\today}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=20mm, top=20mm, right=20mm, bottom=20mm}
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+\onehalfspacing
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\maketitle
+
+\pagebreak
+\section{Question 1}
+The rule, $<A> \to <A> + <A>$, could expand into the statement $a = a + b + c$, with no way to accurately reverse it.
+The resulting statement could, for example, be the result of $a = <A> + b + c$ or $a = a + b + <A>$, as well as numerous other predecessors. 
+
+\section{Question 2}
+\subsection{Time Efficiency}
+The task was to measure performance when accessing a 2D Array in C using subscripting and using pointers and pointer arithmetic.
+The array utilized contained 100 million integers, and for each loop simply assigned a value to each cell.
+
+The developed solution had the following execution results, with time measured in microseconds:
+
+\begin{tabular}{l l l}
+    Run \# & Subscripting & Pointers \\ \hline
+    1 & 407942 & 8 \\
+    2 & 406256 & 10 \\
+    3 & 403222 & 10 \\
+    4 & 402273 & 7 \\
+    5 & 406751 & 7 \\
+    6 & 405312 & 7 \\
+    7 & 406877 & 7 \\
+
+\end{tabular}
+
+Accessing array data through pointers is clearly faster in this solution.
+
+\subsection{Reliability}
+However, the pointer arithmetic should be considered more unreliable than using array subscripting.
+Utilizing subscripting makes the code more readable as it gives an easy picture of which cell is being used.
+Pointer arithmetic is also not bounded, and could result in attempts to access memory outside of the array.
+
+\pagebreak
+\section{Question 3}
+
+\subsection{a}
+\begin{tabular}{l l l}
+    3. Semantic Rule: & $<expr>.actual\_type \leftarrow$ & if ($<expr>.actual\_type = int$) and \\
+    & &     ($<var>.actual\_type = int$) \\
+    & &     then int \\
+    & & else real \\
+    & & end if
+\end{tabular}
+
+\subsection{b}
+\begin{tabular}{l l l}
+    
+
+
+\end{tabular}
+
+
+\section{Question 4}
+Static Scoptng: x = 5
+
+Dynamic Scoping: x = 10
+
+\pagebreak
+\section{Question 5}
+\begin{enumerate}
+    \item Point 1
+    \begin{itemize}
+        \item a - definition 1
+        \item b - definition 2
+        \item c - definition 2
+        \item d - definition 2
+    \end{itemize}
+    \item Point 2
+    \begin{itemize}
+        \item a - definition 1
+        \item b - definition 2
+        \item c - definition 3
+        \item d - definition 3
+        \item e - definition 3
+    \end{itemize}
+    \item Point 3
+    \begin{itemize}
+        \item a - definition 1
+        \item b - definition 2
+        \item c - definition 2
+        \item d - definition 2
+    \end{itemize}
+    \item Point 4
+    \begin{itemize}
+        \item a - definition 1
+        \item b - definition 1
+        \item c - definition 1
+    \end{itemize}
+\end{enumerate}
+
+\end{document}
+
