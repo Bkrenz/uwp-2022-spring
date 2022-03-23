@@ -105,7 +105,7 @@ curJobLoadtime			WORD	0
 cmd_QUIT				BYTE	"quit", 0
 cmd_HELP				BYTE	"help", 0
 cmd_LOAD				BYTE	"load", 0
-cmd_RUN				BYTE	"run", 0
+cmd_RUN					BYTE	"run", 0
 cmd_HOLD				BYTE	"hold", 0
 cmd_KILL				BYTE	"kill", 0
 cmd_SHOW				BYTE	"show", 0
@@ -131,11 +131,11 @@ main PROC
 	call Crlf
 
 	mov system_time, 0
-	move curJobPointer, offset endOfJobsarray-SizeOfJob
+	mov curJobPointer, offset endOfJobsarray-SizeOfJob
 
 while1:
 	call ProcessCommand
-	jc endwhile1
+	;jc endwhile1
 	jmp while1
 
 endwhile1:
@@ -167,14 +167,15 @@ case_cmd_QUIT:
 	cld
 	mov ecx, LENGTHOF cmd_QUIT
 	REPE CMPSB
+	jne case_cmd_HELP
 	call Quit
-	jmp EndProcessCommand
 
 case_cmd_HELP:
 	mov edi, OFFSET cmd_HELP
 	cld
 	mov ecx, LENGTHOF cmd_HELP
 	REPE CMPSB
+	jne case_cmd_LOAD
 	call Help
 	jmp EndProcessCommand
 
@@ -183,6 +184,7 @@ case_cmd_LOAD:
 	cld
 	mov ecx, LENGTHOF cmd_LOAD
 	REPE CMPSB
+	jne case_cmd_RUN
 	call LoadJob
 	jmp EndProcessCommand
 
@@ -191,6 +193,7 @@ case_cmd_RUN:
 	cld
 	mov ecx, LENGTHOF cmd_RUN
 	REPE CMPSB
+	jne case_cmd_HOLd
 	call RunJob
 	jmp EndProcessCommand
 
@@ -199,6 +202,7 @@ case_cmd_HOLD:
 	cld
 	mov ecx, LENGTHOF cmd_HOLD
 	REPE CMPSB
+	jne case_cmd_KILL
 	call HoldJob
 	jmp EndProcessCommand
 
@@ -207,6 +211,7 @@ case_cmd_KILL:
 	cld
 	mov ecx, LENGTHOF cmd_KILL
 	REPE CMPSB
+	jne case_cmd_SHOW
 	call KillJob
 	jmp EndProcessCommand
 
@@ -215,6 +220,7 @@ case_cmd_SHOW:
 	cld
 	mov ecx, LENGTHOF cmd_SHOW
 	REPE CMPSB
+	jne case_cmd_STEP
 	call Show
 	jmp EndProcessCommand
 
@@ -223,6 +229,7 @@ case_cmd_STEP:
 	cld
 	mov ecx, LENGTHOF cmd_STEP
 	REPE CMPSB
+	jne case_cmd_CHANGE
 	call Step
 	jmp EndProcessCommand
 
@@ -231,6 +238,7 @@ case_cmd_CHANGE:
 	cld
 	mov ecx, LENGTHOF cmd_CHANGE
 	REPE CMPSB
+	jne case_default
 	call Change
 	jmp EndProcessCommand
 
@@ -247,6 +255,9 @@ EndProcessCommand:
 ; Clears the input buffer, resets the index, prompts the user, reads the input,
 ; then calls SkipWhiteSpace
 GetInput:
+	mov edx, OFFSET msg_GetInput
+	call WriteString
+
 	mov edx, OFFSET buffer
 	mov ecx, SIZEOF buffer
 	call ReadString
@@ -646,7 +657,8 @@ FindHighestPriorityJob:
 	jge NextRecord
 
 	mov curJobPointer, esi
-	mov byte ptr curJobPriority, curJobPointer[JPriority]
+	mov al, byte ptr curJobPointer[JPriority]
+	mov curJobPriority, al
 
 NextRecord:
 	add esi, SizeOfJob
@@ -684,16 +696,16 @@ ShowCurrentJob:
 	call WriteString
 	call Crlf
 	mov eax, 0
-	mov eax, curJobPointer[JPriority]
+	mov al, byte ptr curJobPointer[JPriority]
 	call WriteInt
 	call Crlf
-	mov eax, curJobPointer[JStatus]
+	mov al, byte ptr curJobPointer[JStatus]
 	call WriteInt
 	call Crlf
-	mov eax, curJobPointer[JRunTime]
+	mov ax, word ptr curJobPointer[JRunTime]
 	call WriteInt
 	call Crlf
-	mov eax, curJobPointer[JLoadTime]
+	mov ax, word ptr curJobPointer[JLoadTime]
 	call WriteInt
 	call Crlf
 	ret
