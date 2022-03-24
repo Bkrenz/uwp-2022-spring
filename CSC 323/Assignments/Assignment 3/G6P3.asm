@@ -31,15 +31,25 @@ INCLUDE Irvine32.inc
 msg_Details				BYTE	"Welcome to the Operating System Simulator.", 0
 msg_GetInput			BYTE	"Enter input: ", 0
 msg_Quit				BYTE	"Exiting...", 0
-msg_InvalidCommand		BYTE	"Invalid command entered."
-msg_MissingJobName		BYTE	"Invalid job name. Input Job Name (max 8 chars): ", 0
+msg_InvalidCommand		BYTE	"Invalid command entered.", 0
+msg_MissingJobName		BYTE	"Invalid job name. Input Job Name (max 8 chars).", 0
 msg_MissingJobPriority	BYTE	"Missing job priority. Input Job Priority: ", 0
 msg_InvalidJobPriority	BYTE	"Invalid job priority. No command executed.", 0
 msg_MissingJobRunTime	BYTE	"Missing job runtime. Input Job RunTime: ", 0
 msg_InvalidRunTime		BYTE	"Invalid run time. No command executed.", 0
-msg_JobFinished			BYTE	"Job finished."
+msg_JobFinished			BYTE	"Job finished.", 0
 
-msg_Help				BYTE	"Help",0   ; TODO
+;Help Menu Messages
+msg_Help				BYTE	"[HELP MENU]",0
+msg_HQuit				BYTE	"quit -> Quits Program", 0
+msg_HHelp				BYTE	"help -> Displays this menu", 0
+msg_HShow				BYTE	"show -> displays the current job queue", 0
+msg_HRun				BYTE	"run [job] -> runs the job you select, brackets not included", 0
+msg_HHold				BYTE	"hold [job] -> puts the job you select on hold, brackets not included", 0
+msg_HKill				BYTE	"kill [job] -> removes selected job from queue, must be in HOLD mode", 0
+msg_HStep				BYTE	"step [num] -> processes the system for num cycles", 0
+msg_HChange				BYTE	"change [job] [priority] -> changes job priority. priority must bt 0-7", 0
+msg_HLoad				BYTE	"load [job] [priority] [runtime] -> loads the job, sets the priority, runtime is cycle steps, 1-50", 0
 
 
 ; Input Buffer
@@ -158,86 +168,110 @@ ProcessCommand:
 	; Get the word from the input
 	call GetWord
 
-	; Move word into register for comparisons
-	mov esi, OFFSET currentWord
-
 	; Check which command this is
 case_cmd_QUIT:
+	push esi
 	mov edi, OFFSET cmd_QUIT
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_QUIT
+	pop esi
 	REPE CMPSB
 	jne case_cmd_HELP
 	call Quit
 
 case_cmd_HELP:
+	push esi
 	mov edi, OFFSET cmd_HELP
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_HELP
 	REPE CMPSB
+	pop esi
 	jne case_cmd_LOAD
 	call Help
 	jmp EndProcessCommand
 
 case_cmd_LOAD:
+	push esi
 	mov edi, OFFSET cmd_LOAD
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_LOAD
 	REPE CMPSB
+	pop esi
 	jne case_cmd_RUN
 	call LoadJob
 	jmp EndProcessCommand
 
 case_cmd_RUN:
+	push esi
 	mov edi, OFFSET cmd_RUN
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_RUN
 	REPE CMPSB
+	pop esi
 	jne case_cmd_HOLd
 	call RunJob
 	jmp EndProcessCommand
 
 case_cmd_HOLD:
+	push esi
 	mov edi, OFFSET cmd_HOLD
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_HOLD
 	REPE CMPSB
+	pop esi
 	jne case_cmd_KILL
 	call HoldJob
 	jmp EndProcessCommand
 
 case_cmd_KILL:
+	push esi
 	mov edi, OFFSET cmd_KILL
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_KILL
 	REPE CMPSB
+	pop esi
 	jne case_cmd_SHOW
 	call KillJob
 	jmp EndProcessCommand
 
 case_cmd_SHOW:
+	push esi
 	mov edi, OFFSET cmd_SHOW
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_SHOW
 	REPE CMPSB
+	pop esi
 	jne case_cmd_STEP
 	call Show
 	jmp EndProcessCommand
 
 case_cmd_STEP:
+	push esi
 	mov edi, OFFSET cmd_STEP
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_STEP
 	REPE CMPSB
+	pop esi
 	jne case_cmd_CHANGE
 	call Step
 	jmp EndProcessCommand
 
 case_cmd_CHANGE:
+	push esi
 	mov edi, OFFSET cmd_CHANGE
+	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_CHANGE
 	REPE CMPSB
+	pop esi
 	jne case_default
 	call Change
 	jmp EndProcessCommand
@@ -291,6 +325,7 @@ SkipChar:
 ; input index to a word buffer until a non-alpha character, null, or end of line
 ; is reached.
 GetWord:
+	mov esi, OFFSET buffer
 	mov edi, OFFSET currentWord
 	mov ebx, 0
 
@@ -310,10 +345,10 @@ GetWordLoop:
 	inc ebx
 	inc esi
 
-	jl GetWordLoop
-	mov currentWordSize, bl
+	jmp GetWordLoop
 
 InvalidChar:
+	mov currentWordSize, bl
 	ret
 	
 
@@ -322,6 +357,10 @@ InvalidChar:
 ; Once there is input, the GetWord procedure will be called and the job name is kept.
 GetJobName:
 	call SkipWhiteSpace
+
+	mov edx, esi
+	call WriteString
+	call Crlf
 	
 	mov al, [esi]
 	cmp al, ascii_Null
@@ -330,22 +369,27 @@ GetJobName:
 GetJobInput:
 	mov edx, OFFSET msg_MissingJobName
 	call WriteString
+	call Crlf
 	call GetInput
 	jmp GetJobName
 
 GetJobWord:
 	call GetWord
 
-	; Make sure the word is a valid size
-	cmp currentWordSize, 0
-	je GetJobInput
-	cmp currentWordSize, 8
-	jg GetJobInput
-
 	; Move the Word to the current Job Name
 	mov esi, OFFSET currentWord
 	mov edi, OFFSET curJobName
+	
+	; Make sure the word is a valid size
+	cmp currentWordSize, 8
+	jg GetJobInput
 	mov ecx, LENGTHOF currentWord
+	jmp MoveJobWord
+
+WordTooLong:
+	mov ecx, 8
+	
+MoveJobWord:
 	cld
 	REP MOVSB
 
@@ -519,6 +563,10 @@ NoJobFound:
 ; status is changed from available to hold.
 LoadJob:
 	call GetJobName
+	mov edx, OFFSET curJobName
+	call WriteString
+	call Crlf
+
 	call GetPriority
 	call GetRunTime
 
@@ -730,7 +778,47 @@ EndChange:
 
 ; Prints out the help messages
 Help:
-	nop
+	mov edx, OFFSET msg_Help
+	call WriteString
+	call Crlf
+
+	mov edx, OFFSET msg_HQuit
+	call WriteString
+	call Crlf
+
+	mov edx, OFFSET msg_HHelp
+	call WriteString
+	call Crlf
+
+	mov edx, OFFSET msg_HShow
+	call WriteString
+	call Crlf
+
+	mov edx, OFFSET msg_HRun
+	call WriteString
+	Call Crlf
+
+	mov edx, OFFSET msg_HHold
+	call WriteString
+	Call Crlf
+
+	mov edx, OFFSET msg_HKill
+	call WriteString
+	Call Crlf
+
+	mov edx, OFFSET msg_HStep
+	call WriteString
+	Call Crlf
+
+	mov edx, OFFSET msg_HChange
+	call WriteString
+	Call Crlf
+
+	mov edx, OFFSET msg_HLoad
+	call WriteString
+	Call Crlf
+
+	ret
 
 
 ; Quit the program
