@@ -29,7 +29,7 @@ INCLUDE Irvine32.inc
 
 ; Output Strings
 msg_Details				BYTE	"Welcome to the Operating System Simulator.", 0
-msg_GetInput			BYTE	"Enter input: ", 0
+msg_GetInput			BYTE	">> ", 0
 msg_Quit				BYTE	"Exiting...", 0
 msg_InvalidCommand		BYTE	"Invalid command entered.", 0
 msg_MissingJobName		BYTE	"Invalid job name. Input Job Name (max 8 chars).", 0
@@ -145,7 +145,7 @@ main PROC
 
 while1:
 	call ProcessCommand
-	;jc endwhile1
+	jc endwhile1
 	jmp while1
 
 endwhile1:
@@ -166,6 +166,7 @@ ProcessCommand:
 	je EndProcessCommand
 
 	; Get the word from the input
+	mov esi, OFFSET buffer
 	call GetWord
 
 	; Check which command this is
@@ -175,8 +176,8 @@ case_cmd_QUIT:
 	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_QUIT
-	pop esi
 	REPE CMPSB
+	pop esi
 	jne case_cmd_HELP
 	call Quit
 
@@ -212,7 +213,7 @@ case_cmd_RUN:
 	mov ecx, LENGTHOF cmd_RUN
 	REPE CMPSB
 	pop esi
-	jne case_cmd_HOLd
+	jne case_cmd_HOLD
 	call RunJob
 	jmp EndProcessCommand
 
@@ -265,13 +266,13 @@ case_cmd_STEP:
 	jmp EndProcessCommand
 
 case_cmd_CHANGE:
-	push esi
+	push edi
 	mov edi, OFFSET cmd_CHANGE
 	mov esi, OFFSET currentWord
 	cld
 	mov ecx, LENGTHOF cmd_CHANGE
 	REPE CMPSB
-	pop esi
+	pop edi
 	jne case_default
 	call Change
 	jmp EndProcessCommand
@@ -325,9 +326,9 @@ SkipChar:
 ; input index to a word buffer until a non-alpha character, null, or end of line
 ; is reached.
 GetWord:
-	mov esi, OFFSET buffer
 	mov edi, OFFSET currentWord
 	mov ebx, 0
+	mov eax, 0
 
 GetWordLoop:
 	; Move the current character into the al register, then force it to upper case
@@ -340,15 +341,16 @@ GetWordLoop:
 	cmp al, ascii_Z_Upper
 	jg InvalidChar
 
-	mov edx, [esi]
-	mov [edi+ebx], edx
-	inc ebx
+	mov dl, byte ptr [esi]
+	mov byte ptr [edi], dl
 	inc esi
+	inc edi
 
 	jmp GetWordLoop
 
 InvalidChar:
-	mov currentWordSize, bl
+	mov dl, 0
+	mov byte ptr[edi], dl
 	ret
 	
 
@@ -357,12 +359,8 @@ InvalidChar:
 ; Once there is input, the GetWord procedure will be called and the job name is kept.
 GetJobName:
 	call SkipWhiteSpace
-
-	mov edx, esi
-	call WriteString
-	call Crlf
 	
-	mov al, [esi]
+	mov al, byte ptr [esi]
 	cmp al, ascii_Null
 	jne GetJobWord
 
@@ -371,28 +369,37 @@ GetJobInput:
 	call WriteString
 	call Crlf
 	call GetInput
-	jmp GetJobName
 
 GetJobWord:
+
 	call GetWord
 
 	; Move the Word to the current Job Name
 	mov esi, OFFSET currentWord
 	mov edi, OFFSET curJobName
+	mov eax, 0
+	mov ecx, 0
 	
 	; Make sure the word is a valid size
-	cmp currentWordSize, 8
-	jg GetJobInput
-	mov ecx, LENGTHOF currentWord
-	jmp MoveJobWord
+CopyWordLoop:
+	mov al, byte ptr [esi]
+	mov [edi], al
+	cmp ecx, 8
+	je CopyEnd
+	cmp al, ascii_Null
+	je CopyEnd
+	inc edi
+	inc esi
+	inc ecx
+	jmp CopyWordLoop
 
-WordTooLong:
-	mov ecx, 8
-	
-MoveJobWord:
-	cld
-	REP MOVSB
-
+CopyEnd:
+	mov edx, OFFSET currentWord
+	call WriteString
+	call Crlf
+	mov edx, OFFSET curJobName
+	call WriteString
+	call Crlf
 	ret
 
 
@@ -404,25 +411,26 @@ GetNumber:
 	
 	; Check if negative number
 	mov flag_NegativeNumber, 0
-	mov al, [esi]
-	cmp al, ascii_MinusSign
+	mov dl, byte ptr [esi]
+	cmp dl, ascii_MinusSign
 	jne GetNumberLoop
 	mov flag_NegativeNumber, 1
 	inc esi
 
 GetNumberLoop:
-	mov dl, [esi]
+	mov edx, 0
+	mov dl, byte ptr [esi]
+
 	cmp dl, ascii_Zero
 	jl CheckNegative
-	
-	mov dl, [esi]
-	cmp dl, ascii_Zero
+
+	cmp dl, ascii_Nine
 	jg CheckNegative
 
-	mov ecx, [esi]
-	add ecx, -48
 	mul ebx
-	add eax, ecx
+	mov dl, byte ptr [esi]
+	add dl, -48
+	add eax, edx
 
 	inc esi
 	jmp GetNumberLoop
@@ -449,10 +457,15 @@ GetPriority:
 	cmp dl, ascii_Null
 	jne ProcessPriority
 
+	mov edx, OFFSET msg_MissingJobPriority
+	call WriteString
+	call Crlf
+
 	call GetInput
-	call GetNumber
 
 ProcessPriority:
+	call GetNumber
+
 	cmp eax, 0
 	jl InvalidPriority
 
@@ -460,12 +473,13 @@ ProcessPriority:
 	jg InvalidPriority
 
 	mov curJobPriority, al
+	ret
 
 InvalidPriority:
 	mov edx, OFFSET msg_InvalidJobPriority
 	call WriteString
 	call Crlf
-
+	ret
 
 ; Calls SkipWhiteSpace then if there is not a parameter left in the input buffer the user
 ; will be prompted for a run time and the GetInput procedure will be called. Once there
@@ -480,10 +494,13 @@ GetRunTime:
 	cmp dl, ascii_Null
 	jne ProcessRunTime
 
+	mov edx, OFFSET msg_MissingJobRunTime
+	call WriteString
+	call Crlf
 	call GetInput
-	call GetNumber
 
 ProcessRunTime:
+	call GetNumber
 	cmp eax, 0
 	jl InvalidRunTime
 
@@ -562,15 +579,12 @@ NoJobFound:
 ; location is found for the unique job, the information is placed into the record and the
 ; status is changed from available to hold.
 LoadJob:
+
 	call GetJobName
-	mov edx, OFFSET curJobName
-	call WriteString
-	call Crlf
 
 	call GetPriority
-	call GetRunTime
 
-	; Check if good TODO
+	call GetRunTime
 
 	call FindJob
 	cmp flag_JobExists, 1
@@ -661,12 +675,15 @@ Step:
 	mov flag_JobStepAvailable, 0
 	mov esi, OFFSET jobsArray
 	mov curJobPriority, 8
+	mov ecx, eax
 
 StepLoop:
-	cmp eax, 0
+	cmp ecx, 0
 	jle EndStep
 
-	dec eax
+	dec ecx
+
+	mov flag_JobStepAvailable, 0
 
 	call FindHighestPriorityJob
 	inc system_time
@@ -693,6 +710,11 @@ EndStep:
 	ret
 
 FindHighestPriorityJob:
+	cmp esi, endofJobsArray
+	jle FHPJStep
+	mov esi, OFFSET jobsArray
+
+FHPJStep:
 	cmp esi, curJobPointer
 	je EndFindPriority
 
@@ -713,7 +735,12 @@ NextRecord:
 	jmp FindHighestPriorityJob
 
 EndFindPriority:
+	mov al, [esi+JStatus] 
+	cmp al, JobRun
+	jne EFPRet
 	mov flag_JobStepAvailable, 1
+
+EFPRet:
 	ret
 
 
@@ -739,8 +766,10 @@ EndShow:
 	ret
 
 ShowCurrentJob:
-	call Crlf
-	mov edx, curJobPointer[JName]
+	cmp curJobPointer[JStatus], JobAvailable
+	je EndShowCurrentJob
+
+	mov edx, OFFSET curJobPointer[JName]
 	call WriteString
 	call Crlf
 	mov eax, 0
@@ -756,6 +785,8 @@ ShowCurrentJob:
 	mov ax, word ptr curJobPointer[JLoadTime]
 	call WriteInt
 	call Crlf
+
+EndShowCurrentJob:
 	ret
 
 
