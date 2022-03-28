@@ -9,10 +9,6 @@ TITLE Operating System Simulator (G6P3.asm)				; OF DOOM(ED GRADES)
 ; the stepping of those jobs.
 
 
-; TODO:
-;	Write Help Messages
-
-
 ; NOTES:
 ;	ASCII Capital letters: 65-90
 
@@ -60,6 +56,7 @@ byteCount				DWORD	?
 wordMaxSize				equ		bufferSize
 currentWord				BYTE	wordMaxSize DUP(0)
 currentWordSize			BYTE	0
+outputWord				BYTE	9 DUP(0)
 
 
 ; ASCII Equivalents
@@ -452,10 +449,10 @@ GetPriority:
 ProcessPriority:
 	call GetNumber
 
-	cmp eax, 0
+	cmp al, 0
 	jl InvalidPriority
 
-	cmp eax, 7
+	cmp al, 7
 	jg InvalidPriority
 
 	mov curJobPriority, al
@@ -509,14 +506,16 @@ InvalidRunTime:
 ; the procedure returns indicating no space is available.
 FindNextAvailableRecord:
 	mov esi, OFFSET jobsArray
-	cmp jobsArray[JStatus], 0
+
+AvailJobLoop:
+	cmp byte ptr [esi+JStatus], JobAvailable
 	je AvailableRecord
 
 	cmp esi, endOfJobsArray
 	je NoAvailableRecord
 
 	add esi, SizeOfJob
-	jmp FindNextAvailableRecord
+	jmp AvailJobLoop
 
 AvailableRecord:
 	mov curJobPointer, esi
@@ -606,24 +605,26 @@ LoadJob:
 	push esi
 	; Move the name into the Record
 	mov esi, OFFSET curJobName
-	mov edi, OFFSET curJobPointer[JName]
+	mov edi, curJobPointer
 	mov ecx, 8
 	cld
 	REP MOVSB
 	pop esi
 
+	mov esi, curJobPointer
+
 	; Store numerical values in the Record
 	mov al, curJobPriority
-	mov byte ptr curJobPointer[JPriority], al
+	mov byte ptr [esi+JPriority], al
 
 	mov al, JobHold
-	mov byte ptr curJobPointer[JStatus], al
+	mov byte ptr [esi+JStatus], al
 
 	mov ax, curJobRunTime
-	mov word ptr curJobPointer[JRunTime], ax
+	mov word ptr [esi+JRunTime], ax
 
 	mov ax, system_time
-	mov word ptr curJobPointer[JLoadTime], ax
+	mov word ptr [esi+JLoadTime], ax
 
 EndLoadJob:
 	ret
@@ -768,7 +769,6 @@ Show:
 
 ShowLoop:
 	call ShowCurrentJob
-	call Crlf
 	call GetNextRecord
 	mov esi, curJobPointer
 	cmp esi, endOfJobsArray
@@ -784,10 +784,17 @@ ShowCurrentJob:
 	mov al, byte ptr [esi+JStatus]
 	cmp al, JobAvailable
 	je EndShowCurrentJob
+
+	mov edi, OFFSET outputWord
+	mov ecx, 8
+	cld
+	REP MOVSB
 	
-	mov edx, curJobPointer[JName]
+	mov edx, OFFSET outputWord
 	call WriteString
 	call Crlf
+
+	mov esi, curJobPointer
 
 	mov al, byte ptr JPriority[esi]
 	call WriteInt
@@ -801,6 +808,7 @@ ShowCurrentJob:
 	
 	mov ax, word ptr JLoadTime[esi]
 	call WriteInt
+	call Crlf
 	call Crlf
 
 EndShowCurrentJob:
