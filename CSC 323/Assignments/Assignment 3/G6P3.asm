@@ -533,7 +533,7 @@ NoAvailableRecord:
 ; the procedure returns indicating the job was not found.
 FindJob:
 	push esi
-	mov edi, OFFSET jobsArray+JName
+	mov edi, OFFSET jobsArray
 	mov curJobPointer, edi
 
 FindJobLoop:
@@ -542,15 +542,15 @@ FindJobLoop:
 	mov ecx, LENGTHOF curJobName
 	cld
 	REPE CMPSB
+
 	je JobFound
-	mov edi, curJobPointer
 	call GetNextRecord
+	
 	cmp edi, endOfJobsArray
 	je NoJobFound
 	jmp FindJobLoop
 
 JobFound:
-	mov curJobPointer, edx
 	mov flag_JobExists, 1
 	pop esi
 	ret
