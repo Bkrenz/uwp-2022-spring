@@ -3,7 +3,6 @@ TITLE Operating System Simulator (G6P3.asm)				; OF DOOM(ED GRADES)
 ; CSC 323 - Group 6 - Assignment 3: Operating System Simulator
 ; Author: Robert Krency, kre1188@calu.edu
 ; Author: Anthony Stepich, ste4864@calu.edu
-; Author: Austin Pringle, pri2679@calu.edu
 ; Author: Camden Kovach, kov2428@calu.edu
 
 ; This program simulates an Operating System that handles up to ten jobs and
@@ -38,6 +37,8 @@ msg_InvalidJobPriority	BYTE	"Invalid job priority. No command executed.", 0
 msg_MissingJobRunTime	BYTE	"Missing job runtime. Input Job RunTime: ", 0
 msg_InvalidRunTime		BYTE	"Invalid run time. No command executed.", 0
 msg_JobFinished			BYTE	"Job finished.", 0
+msg_StatusRun			BYTE	"Status: Run", 0
+msg_StatusHold			BYTE	"Status: Hold", 0
 
 ;Help Menu Messages
 msg_Help				BYTE	"[HELP MENU]",0
@@ -327,6 +328,7 @@ SkipChar:
 ; is reached.
 GetWord:
 	mov edi, OFFSET currentWord
+	mov currentWordSize, 0
 	mov ebx, 0
 	mov eax, 0
 
@@ -345,6 +347,7 @@ GetWordLoop:
 	mov byte ptr [edi], dl
 	inc esi
 	inc edi
+	inc currentWordSize
 
 	jmp GetWordLoop
 
@@ -373,33 +376,16 @@ GetJobInput:
 GetJobWord:
 
 	call GetWord
-
+	push esi
 	; Move the Word to the current Job Name
+	mov ecx, 0
 	mov esi, OFFSET currentWord
 	mov edi, OFFSET curJobName
-	mov eax, 0
+	mov cl, 8
+	REP MOVSB
 	mov ecx, 0
-	
-	; Make sure the word is a valid size
-CopyWordLoop:
-	mov al, byte ptr [esi]
-	mov [edi], al
-	cmp ecx, 8
-	je CopyEnd
-	cmp al, ascii_Null
-	je CopyEnd
-	inc edi
-	inc esi
-	inc ecx
-	jmp CopyWordLoop
-
-CopyEnd:
-	mov edx, OFFSET currentWord
-	call WriteString
-	call Crlf
-	mov edx, OFFSET curJobName
-	call WriteString
-	call Crlf
+	mov byte ptr [esi], cl
+	pop esi
 	ret
 
 
@@ -504,7 +490,7 @@ ProcessRunTime:
 	cmp eax, 0
 	jl InvalidRunTime
 
-	cmp eax, 7
+	cmp eax, 50
 	jg InvalidRunTime
 
 	mov curJobRunTime, ax
@@ -547,29 +533,51 @@ NoAvailableRecord:
 ; When the procedure reaches the end of the jobs record without finding the job name,
 ; the procedure returns indicating the job was not found.
 FindJob:
-	mov esi, OFFSET curJobName
-	mov edx, OFFSET jobsArray
+	push esi
+	mov edi, OFFSET jobsArray+JName
+	mov curJobPointer, edi
 
 FindJobLoop:
-	mov edi, OFFSET jobsArray+JName
+	mov esi, OFFSET curJobName
+	mov edi, curJobPointer
 	mov ecx, LENGTHOF curJobName
 	cld
 	REPE CMPSB
 	je JobFound
-
-	cmp edx, endOfJobsArray
+	mov edi, curJobPointer
+	call GetNextRecord
+	cmp edi, endOfJobsArray
 	je NoJobFound
-
-	add jobsArray, SizeOfJob
 	jmp FindJobLoop
 
 JobFound:
 	mov curJobPointer, edx
 	mov flag_JobExists, 1
+	pop esi
 	ret
 
 NoJobFound:
+	pop esi
 	mov flag_JobExists, 0
+	ret
+
+
+; Moves the curJobPointer to the next record
+GetNextRecord:
+	mov edi, curJobPointer
+	cmp edi, endofJobsArray
+	je GNREndOfArray
+	jmp GNRNext
+
+GNREndOfArray:
+	mov edi, OFFSET jobsArray
+	jmp GNREnd
+	
+GNRNext:
+	add edi, SizeOfJob
+
+GNREnd:
+	mov curJobPointer, edi
 	ret
 
 ; This calls the GetJobName procedure followed by calling the GetPriority procedure then
@@ -580,26 +588,31 @@ NoJobFound:
 ; status is changed from available to hold.
 LoadJob:
 
+	; Get Input Vars
 	call GetJobName
-
 	call GetPriority
-
 	call GetRunTime
 
+	; Check if Job exists already
 	call FindJob
 	cmp flag_JobExists, 1
 	je EndLoadJob
 
+	; Find an available Record
 	call FindNextAvailableRecord
 	cmp flag_AvailableRecord, 1
 	jne EndLoadJob
 
+	push esi
+	; Move the name into the Record
 	mov esi, OFFSET curJobName
 	mov edi, OFFSET curJobPointer[JName]
-	mov ecx, LENGTHOf curJobName
+	mov ecx, 8
 	cld
 	REP MOVSB
+	pop esi
 
+	; Store numerical values in the Record
 	mov al, curJobPriority
 	mov byte ptr curJobPointer[JPriority], al
 
@@ -751,38 +764,42 @@ EFPRet:
 ; as words not numbers: run or hold.
 Show:
 	mov esi, OFFSET jobsArray
+	mov curJobPointer, esi
 
 ShowLoop:
-	mov curJobPointer, esi
 	call ShowCurrentJob
-
+	call Crlf
+	call GetNextRecord
+	mov esi, curJobPointer
 	cmp esi, endOfJobsArray
 	je EndShow
-
-	add esi, SizeOfJob
 	jmp ShowLoop
 
 EndShow:
 	ret
 
 ShowCurrentJob:
-	cmp curJobPointer[JStatus], JobAvailable
+	mov esi, curJobPointer
+	mov eax, 0
+	mov al, byte ptr [esi+JStatus]
+	cmp al, JobAvailable
 	je EndShowCurrentJob
-
-	mov edx, OFFSET curJobPointer[JName]
+	
+	mov edx, curJobPointer[JName]
 	call WriteString
 	call Crlf
-	mov eax, 0
-	mov al, byte ptr curJobPointer[JPriority]
+
+	mov al, byte ptr JPriority[esi]
 	call WriteInt
 	call Crlf
-	mov al, byte ptr curJobPointer[JStatus]
+	
+	call PrintStatus
+	
+	mov ax, word ptr JRunTime[esi]
 	call WriteInt
 	call Crlf
-	mov ax, word ptr curJobPointer[JRunTime]
-	call WriteInt
-	call Crlf
-	mov ax, word ptr curJobPointer[JLoadTime]
+	
+	mov ax, word ptr JLoadTime[esi]
 	call WriteInt
 	call Crlf
 
@@ -849,6 +866,19 @@ Help:
 	call WriteString
 	Call Crlf
 
+	ret
+
+PrintStatus:
+	mov dl, byte ptr curJobPointer[JStatus]
+	cmp dl, 1
+	jne PrintHold
+	mov edx, OFFSET msg_StatusRun
+	jmp EndPrintStatus
+PrintHold:
+	mov edx, OFFSET msg_StatusHold
+EndPrintStatus:
+	call WriteString
+	call Crlf
 	ret
 
 
