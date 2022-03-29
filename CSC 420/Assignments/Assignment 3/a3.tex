@@ -1,0 +1,103 @@
+\documentclass[12pt]{article}
+
+\title{CSC 420 - Assignment 3}
+\author{Robert Krency, kre1188@calu.edu \\}
+\date{\today}
+
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{listings}
+
+% Geometry 
+\usepackage{geometry}
+\geometry{letterpaper, left=20mm, top=20mm, right=20mm, bottom=20mm}
+
+
+% Add vertical spacing to tables
+\renewcommand{\arraystretch}{1.4}
+
+% Macros
+\newcommand{\definition}[1]{\underline{\textbf{#1}}}
+
+\newenvironment{rcases}
+  {\left.\begin{aligned}}
+  {\end{aligned}\right\rbrace}
+
+% Begin Document
+\begin{document}
+
+\maketitle
+
+\section{Question 1}
+
+The Magic 3x3 Square is a 3x3 grid of the digits 1 to 9. Each grid cell has a unique number, and when arranged in a certain order,
+the sum of each row, column, and diagonal will each be 15. 
+
+Consider the following square, with letters marking each grid tile, and a possible solution:
+
+\begin{center}
+
+\begin{tabular}{c c}
+
+\begin{tabular}{| c | c | c |}
+    \hline 
+    A & B & C \\ \hline
+    D & E & F \\ \hline
+    G & H & I \\ \hline
+\end{tabular}
+
+&
+
+\begin{tabular}{| c | c | c |}
+    \hline 
+    6 & 1 & 8 \\ \hline
+    7 & 5 & 3 \\ \hline
+    2 & 9 & 4 \\ \hline
+\end{tabular}
+
+\end{tabular}
+\end{center}
+
+This problem can be formulated as a Constraint Satisfaction Problem, with the following properties:
+
+\begin{itemize}
+    \item Variables: $X$ = \{ A, B, C, D, E, F, G, H, I \}
+    \item Domains: $X_i$ = \{ 1, 2, 3, 4, 5, 6, 7, 8, 9 \}
+    \item Constraints: $C$ = \{
+    \begin{itemize}
+        \item AllDifferent\{ A, B, C, D, E, F, G, H, I \},
+        \item A + B + C = 15,
+        \item D + E + F = 15,
+        \item G + H + I = 15,
+        \item A + D + G = 15,
+        \item B + E + H = 15,
+        \item C + F + I = 15,
+        \item A + E + I = 15,
+        \item C + E + G = 15 \}
+    \end{itemize}
+\end{itemize}
+
+\pagebreak
+
+\section{Question 2}
+
+The attached MiniZinc script produces the following output:
+
+\begin{lstlisting}
+    Running Magic15Square.mzn
+    847msec
+
+    4 9 2 
+    3 5 7 
+    8 1 6 
+    ----------
+    Finished in 847msec.
+\end{lstlisting}
+
+
+\end{document}
