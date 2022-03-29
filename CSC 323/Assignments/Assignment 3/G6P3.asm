@@ -714,10 +714,13 @@ StepLoop:
 
 	cmp flag_JobStepAvailable, 1
 	jne StepLoop
+	
+	mov esi, curJobPointer
+	cmp byte ptr JStatus[esi], JobRun
+	jne StepLoop
 
 	call ShowCurrentJob
 	
-	mov esi, curJobPointer
 	dec byte ptr JRunTime[esi]
 
 	cmp byte ptr JRunTime[esi], 0
@@ -730,7 +733,6 @@ StepLoop:
 
 StepLoopPartDeux:
 	mov curJobPointer, esi
-	call GetNextRecord
 	jmp StepLoop
 
 EndStep:
@@ -738,26 +740,29 @@ EndStep:
 
 
 FindHighestPriorityJob:
-	mov al, byte ptr JPriority[esi]
-	mov curJobPriority, al
+	mov al, 8
 	mov curJobPointer, esi
 
 FHPJLoop:
+	; Get the Next Record
 	push esi
 	call GetNextRecord
 	pop esi
 
+	; If at the end of the array, loop again
 	mov edi, curJobPointer
 	cmp edi, endOfJobsArray
 	je FHPJLoop
 
+	; If looped back to current candidate, stop
 	cmp edi, esi
 	je FHPJEnd
+	
+	; If the job is not in a run state, continue loop
+	cmp byte ptr JStatus[edi], JobRun
+	jne FHPJLoop
 
-	mov al, byte ptr JStatus[edi]
-	cmp al, JobAvailable
-	je FHPJLoop
-
+	; If the new cadidate is lower prio, set as current candidate
 	mov al, byte ptr JPriority[edi]
 	cmp byte ptr JPriority[esi], al
 	jge FHPJLoop
@@ -765,7 +770,6 @@ FHPJLoop:
 	mov curJobPointer, edi
 	mov esi, edi
 	jmp FHPJLoop
-
 
 FHPJEnd:
 	mov curJobPointer, esi
@@ -842,7 +846,8 @@ Change:
 	cmp eax, 7
 	jg EndChange
 
-	mov byte ptr curJobPointer[JPriority], al
+	mov esi, curJobPointer
+	mov byte ptr JPriority[esi], al
 
 EndChange:
 	ret
