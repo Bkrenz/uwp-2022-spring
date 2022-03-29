@@ -57,6 +57,7 @@ wordMaxSize				equ		bufferSize
 currentWord				BYTE	wordMaxSize DUP(0)
 currentWordSize			BYTE	0
 outputWord				BYTE	9 DUP(0)
+stepCounter				DWORD	0
 
 
 ; ASCII Equivalents
@@ -640,7 +641,10 @@ HoldJob:
 	cmp flag_JobExists, 1
 	jne EndHold
 
-	mov curJobPointer[JStatus], JobHold
+	push esi
+	mov esi, curJobPointer
+	mov byte ptr JStatus[esi], JobHold
+	pop esi
 
 EndHold:
 	ret
@@ -655,7 +659,10 @@ RunJob:
 	cmp flag_JobExists, 1
 	jne EndRun
 
-	mov curJobPointer[JStatus], JobRun
+	push esi
+	mov esi, curJobPointer
+	mov byte ptr JStatus[esi], JobRun
+	pop esi
 
 EndRun:
 	ret
@@ -671,7 +678,10 @@ KillJob:
 	cmp flag_JobExists, 1
 	jne EndKill
 
-	mov curJobPointer, JobAvailable
+	push esi
+	mov esi, curJobPointer
+	mov byte ptr JStatus[esi], JobAvailable
+	pop esi
 
 EndKill:
 	ret
@@ -689,13 +699,13 @@ Step:
 	mov flag_JobStepAvailable, 0
 	mov esi, OFFSET jobsArray
 	mov curJobPriority, 8
-	mov ecx, eax
+	mov stepCounter, eax
 
 StepLoop:
-	cmp ecx, 0
+	cmp stepCounter, 0
 	jle EndStep
 
-	dec ecx
+	dec stepCounter
 
 	mov flag_JobStepAvailable, 0
 
@@ -706,55 +716,60 @@ StepLoop:
 	jne StepLoop
 
 	call ShowCurrentJob
-	dec curJobPointer[JRunTime]
+	
+	mov esi, curJobPointer
+	dec byte ptr JRunTime[esi]
 
-	cmp curJobPointer[JRunTime], 0
-	jle StepLoopPartDeux
+	cmp byte ptr JRunTime[esi], 0
+	jg StepLoopPartDeux
 
-	mov curJobPointer[JStatus], JobAvailable
+	mov byte ptr JStatus[esi], JobAvailable
 	mov edx, OFFSET msg_JobFinished
 	call WriteString
 	call Crlf
 
 StepLoopPartDeux:
-	add esi, SizeOfJob
+	mov curJobPointer, esi
+	call GetNextRecord
 	jmp StepLoop
 
 EndStep:
 	ret
 
+
 FindHighestPriorityJob:
-	cmp esi, endofJobsArray
-	jle FHPJStep
-	mov esi, OFFSET jobsArray
-
-FHPJStep:
-	cmp esi, curJobPointer
-	je EndFindPriority
-
-	mov al, [esi+JStatus] 
-	cmp al, JobRun
-	jne NextRecord
-
-	mov al, [esi+JPriority]
-	cmp al, curJobPriority
-	jge NextRecord
-
-	mov curJobPointer, esi
-	mov al, byte ptr curJobPointer[JPriority]
+	mov al, byte ptr JPriority[esi]
 	mov curJobPriority, al
+	mov curJobPointer, esi
 
-NextRecord:
-	add esi, SizeOfJob
-	jmp FindHighestPriorityJob
+FHPJLoop:
+	push esi
+	call GetNextRecord
+	pop esi
 
-EndFindPriority:
-	mov al, [esi+JStatus] 
-	cmp al, JobRun
-	jne EFPRet
+	mov edi, curJobPointer
+	cmp edi, endOfJobsArray
+	je FHPJLoop
+
+	cmp edi, esi
+	je FHPJEnd
+
+	mov al, byte ptr JStatus[edi]
+	cmp al, JobAvailable
+	je FHPJLoop
+
+	mov al, byte ptr JPriority[edi]
+	cmp byte ptr JPriority[esi], al
+	jge FHPJLoop
+
+	mov curJobPointer, edi
+	mov esi, edi
+	jmp FHPJLoop
+
+
+FHPJEnd:
+	mov curJobPointer, esi
 	mov flag_JobStepAvailable, 1
-
-EFPRet:
 	ret
 
 
@@ -877,8 +892,8 @@ Help:
 	ret
 
 PrintStatus:
-	mov dl, byte ptr curJobPointer[JStatus]
-	cmp dl, 1
+	mov dl, byte ptr JStatus[esi]
+	cmp dl, JobRun
 	jne PrintHold
 	mov edx, OFFSET msg_StatusRun
 	jmp EndPrintStatus
