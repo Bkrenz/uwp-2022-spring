@@ -12,13 +12,18 @@ INCLUDE Irvine32.inc
 
 .data
 
+; ASCII Equivalents
+ascii_Tab	equ 9
+
 ; Output Strings
 msg_Details				byte	"Welcome to the Operating System Simulator.", 0
 msg_GetInput			byte	">> ", 0
 msg_Quit				byte	"Exiting...", 0
 
-msg_CurretNode			byte	"Node:  ", 0
-msg_CurrentConnection	byte	"Connection:  ", 0
+msg_CurrentNode			byte	"Node:  ", 0
+msg_CurrentConnection	byte	ascii_Tab, "Connection:  ", 0
+NodePositionOffset		equ sizeof msg_CurrentNode-2
+ConnectionPositionOffset equ sizeof msg_CurrentConnection-2
 
 
 
@@ -116,6 +121,9 @@ Node_Connection		equ		0
 Node_Connection_XMT	equ		4
 Node_Connection_RCV	equ		8
 
+
+; Network
+Network		label	byte
 
 ; Node A Definition
 Node_A		byte	'A'				; Name
@@ -230,9 +238,6 @@ Node_F		byte	'F'				; Name
 
 EndOfNodes	dword	EndOfNodes
 
-; Network
-Network		dword	Node_A
-
 
 
 .code
@@ -241,10 +246,10 @@ main PROC
 	mov edi, offset Network
 
 MainLoop:
-	mov edx, offset msg_CurretNode			; Get the message address
-	mov ecx, sizeof msg_CurretNode			; Get the message size
+	mov edx, offset msg_CurrentNode			; Get the message address
+	mov ecx, sizeof msg_CurrentNode			; Get the message size
 	mov al, Node_Name[edi]					; Move the Node name into the message
-	mov [edx-2], al
+	mov NodePositionOffset[edx], al
 	call WriteString						; Write the message
 	call Crlf
 
@@ -260,7 +265,7 @@ ConnectionLoop:
 	mov edx, offset msg_CurrentConnection	; Get the message address
 	mov ecx, sizeof msg_CurrentConnection	; Get the message size
 	mov al, Node_Name[esi]					; Get the name of the node
-	mov [esi-2], al							; Move the name into the message
+	mov ConnectionPositionOffset[edx], al	; Move the name into the message
 	Call WriteString						; Print the name of the connection
 	Call Crlf
 	; Process the next connection
