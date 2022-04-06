@@ -285,7 +285,84 @@ StepToNextNode:
 	cmp edi, EndOfNodes
 	jl MainLoop
 	jmp Quit
-
+	
+	
+TransmitQueue:
+	;beginning
+	mov edx, OFFSET Network 				;pointer node
+	mov ebx, Node_QueueAddress[edx]				;start of queue
+	
+	end;
+	mov edx, OFFSET Network				;pointer node	
+	mov ebx, Node_QueueAdress[edx]			;start of queue
+	add ebx, Queue_Size				;size of queue
+	
+		
+	mov edx, OFFSET Network				;get node pointer
+	mov eax, Node_InPointer[edx]			;get in pointer
+	mov ebx, Node_OutPointer[edx]			;get out pointer
+	cmp eax, ebx					;compare in and out
+	je Get2
+	
+	PUT Data;
+	cld 
+	mov esi, OFFSET msg_CurrentNode				;message address in esi
+	mov edi, Node_InPointerOFFSET[edx]			;in pointer to esi
+	mov ecx, PacketSize					; number of bytes to move
+	rep movsb
+	mov eax,Node_InPointer[edx]     			; update
+	add eax, PacketSize
+	
+	mov ebx, Node_QueueAddress[edx]				;check if we went past the end of queue
+	add ebx, QueueSize
+	cmp eax,ebx
+	jl Put 1
+	
+	mov eax,Node_QueueAddress[edx]			;make it circular
+	Put1:
+	mov Node_InPointerOFFSET[ebx],eax              	;update
+	mov eax, Node_InPointerOFFSET[edx]
+	add eax, PacketSize
+	sub eax Node_QueueAddress[edx]			; normalize the offset
+	mov ebx, Node_OutPointerOFFSET[edx]
+	sub eax, Node_QueueAddress[edx]			; subtract base address
+	
+	cmp eax,ebx					; compare in and out 
+	je Put2						;queue full
+	
+	;get data
+	cld 
+	mov esi,Node_OutPointerOFFSET[edx]
+	mov edi, OFFSET msg_CurrentNode	
+	mov ecx, PacketSize
+	rep movsb
+	mov eax, Node_OutPointer					;update
+	add eax, PacketSize
+	
+	
+	mov ebx, Node_QueueAddress[edx]				;calculate end of queue
+	add ebx,QueueSize
+	cmp eax,ebx
+	jl Get1
+	
+	mov eax,Node_QueueAddress[edx]					;make it circular
+	Get1:
+	mov Node_OutPointerOFFSET[edx],eax
+	
+	
+PutIt:
+	nop
+	
+	
+	
+	
+	
+	
+GetIt:
+	nop
+	
+	
+	
 
 ; Quit the program
 Quit:
