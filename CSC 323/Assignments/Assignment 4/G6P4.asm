@@ -13,10 +13,12 @@ INCLUDE Irvine32.inc
 .data
 
 ; Output Strings
-msg_Details				BYTE	"Welcome to the Operating System Simulator.", 0
-msg_GetInput			BYTE	">> ", 0
-msg_Quit				BYTE	"Exiting...", 0
+msg_Details				byte	"Welcome to the Operating System Simulator.", 0
+msg_GetInput			byte	">> ", 0
+msg_Quit				byte	"Exiting...", 0
 
+msg_CurretNode			byte	"Node:  ", 0
+msg_CurrentConnection	byte	"Connection:  ", 0
 
 
 
@@ -226,16 +228,58 @@ Node_F		byte	'F'				; Name
 			dword 	F_XMT_E
 			dword 	F_RCV_E
 
-			
+EndOfNodes	dword	EndOfNodes
+
+; Network
+Network		dword	Node_A
 
 
 
 .code
 main PROC
 
-	nop
+	mov edi, offset Network
 
+MainLoop:
+	mov edx, offset msg_CurretNode			; Get the message address
+	mov ecx, sizeof msg_CurretNode			; Get the message size
+	mov al, Node_Name[edi]					; Move the Node name into the message
+	mov [edx-2], al
+	call WriteString						; Write the message
+	call Crlf
 
+	mov ebx, 0								; Init connection counter
+
+; Process a connection
+ConnectionLoop:
+	; Point to the Connection to process
+	mov eax, Node_ConnectionSize			; Get the size of a connection
+	mul bl									; Multiply by connection index
+	mov esi, Node_FixedSize[edi+eax]		; Get the connection address
+	; Move node name into message
+	mov edx, offset msg_CurrentConnection	; Get the message address
+	mov ecx, sizeof msg_CurrentConnection	; Get the message size
+	mov al, Node_Name[esi]					; Get the name of the node
+	mov [esi-2], al							; Move the name into the message
+	Call WriteString						; Print the name of the connection
+	Call Crlf
+	; Process the next connection
+	inc ebx
+	cmp bl, Node_Connections[edi]			; Check if we've processed all connections
+	jl ConnectionLoop
+
+; Step to the Next Node
+StepToNextNode:
+	mov eax, 0								; clear register eax
+	mov al, Node_Connections[edi]			; Get the number of Connections
+	mov cl, Node_ConnectionSize				; Get the size of a connection
+	mul cl									; Multiply the number of connections by the size of connections
+	add edi, Node_FixedSize					; Move past the Fixed Size portion of the Node
+	add edi, eax							; Move past the Connections portion of the Node
+	; Check if we've processed all nodes
+	cmp edi, EndOfNodes
+	jl MainLoop
+	jmp Quit
 
 
 ; Quit the program
