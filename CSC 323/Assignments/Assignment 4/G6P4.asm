@@ -25,9 +25,37 @@ msg_CurrentConnection	byte	ascii_Tab, "Connection:  ", 0
 NodePositionOffset		equ sizeof msg_CurrentNode-2
 ConnectionPositionOffset equ sizeof msg_CurrentConnection-2
 
+;File Processing 
+BufferSize equ 81
+FileBufferSize equ 100
+null equ 0
 
 
+;File Processing messages
+PromptInutFile byte "enter input file name",0
+PromptOutputFile byte " enter output file name",0
+FileErrorMessage byte " error opening file",0
+FileReadMessage byte "error reading file",0
+fileWriteMessage byte " error writing file",0
 ; Network Packet Definition
+
+InfileHandle dword ?
+OutFileHandle dword ?
+
+FileName byte BufferSize dup(0)
+FileBuffer byte FileBufferSize dup(0)
+byte 0
+BytesRead dword 0
+
+
+
+
+
+
+
+
+
+
 Packet_Size					equ 	6
 
 ; Network Packet Offsets
@@ -292,7 +320,7 @@ TransmitQueue:
 	mov edx, OFFSET Network 				;pointer node
 	mov ebx, Node_QueueAddress[edx]				;start of queue
 	
-	end;
+	;end
 	mov edx, OFFSET Network				;pointer node	
 	mov ebx, Node_QueueAdress[edx]			;start of queue
 	add ebx, Queue_Size				;size of queue
@@ -304,7 +332,7 @@ TransmitQueue:
 	cmp eax, ebx					;compare in and out
 	je Get2
 	
-	PUT Data;
+	;PUT Data
 	cld 
 	mov esi, OFFSET msg_CurrentNode				;message address in esi
 	mov edi, Node_InPointerOFFSET[edx]			;in pointer to esi
@@ -362,6 +390,94 @@ GetIt:
 	nop
 	
 	
+	
+	
+	
+;read Input file
+mov edx, offset PromptInputFile
+mov ecx, sizeof PromptInputFile
+call WriteString
+
+mov edx, offset FileName
+mov ecx, sizeof FileName
+call ReadString 
+
+;open input file
+mov edx, offset FileName
+call OpenInputFile
+mov InFileHandle, eax
+cmp eax,INVALID_HANDLE_VALUE
+je InFileError
+
+;Read OUT File
+mov edx,offset PromptOutFile
+mov ecx, sizeof PromptOutFile
+call WriteString
+
+mov edx, offset FileName
+mov ecx, sizeof FileName
+Call ReadString
+
+;open out file
+mov edx, offset FileName
+call CreateOutputFile
+mov OutFileHandle,eax
+cmp eax, INVALID_HANDLE_VALUE
+je OutFileError
+
+
+;Read from InFile
+ReadWriteLoop:
+mov eax,InFileHandle
+mov edx,offset FileBuffer
+mov ecx,FileBufferSize
+Call ReadFromFile
+jc Read Error
+mov BytesRead,eax
+cmp eax,o
+jle doneloop
+move FileBuffer[eax],null
+	
+	:write to out file
+	mov eax,OutFileHandle
+	mov edx, offset FileBuffer
+	mov ecx BytesRead
+	call WriteTofile
+	cmp eax,0
+	je WriteError
+	jmp ReadWriteLoop
+	DoneLoop:
+	jmp CloseFiles
+	
+	ReadError:
+	mov edx, Offest FileRaedMessage
+	mov ecx, sizeof FileReadMessage
+	callWriteString
+	call crlf
+	jmp CloseFiles
+	
+	CloseFiles:
+	mov eax,InFileHandle
+	Call closefile
+	mov eax, OutFileHandle
+	call closefile
+	jmp Quit
+	
+	OutFileError:
+	mov edx,offset FileErrorMessage
+	mov ecx, sizeof FileErrorMessage
+	call WriteString
+	call crlf
+	mov eax, InFileHandle
+	call closefile
+	jmp Quit
+	
+	InFileError:
+	mov edx, offset FileErrorMessage
+	mov ecx,sizeof FileErrorMessage
+	call WriteString
+	call crlf
+	jmp Quit
 	
 
 ; Quit the program
