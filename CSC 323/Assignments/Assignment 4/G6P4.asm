@@ -21,41 +21,11 @@ msg_GetInput			byte	">> ", 0
 msg_Quit				byte	"Exiting...", 0
 
 msg_CurrentNode			byte	"Node:  ", 0
-msg_CurrentConnection	byte	ascii_Tab, "Connection:  ", 0
 NodePositionOffset		equ sizeof msg_CurrentNode-2
+msg_CurrentConnection	byte	ascii_Tab, "Connection:  ", 0
 ConnectionPositionOffset equ sizeof msg_CurrentConnection-2
 
-;File Processing 
-BufferSize equ 81
-FileBufferSize equ 100
-null equ 0
-
-
-;File Processing messages
-PromptInutFile byte "enter input file name",0
-PromptOutputFile byte " enter output file name",0
-FileErrorMessage byte " error opening file",0
-FileReadMessage byte "error reading file",0
-fileWriteMessage byte " error writing file",0
-; Network Packet Definition
-
-InfileHandle dword ?
-OutFileHandle dword ?
-
-FileName byte BufferSize dup(0)
-FileBuffer byte FileBufferSize dup(0)
-byte 0
-BytesRead dword 0
-
-
-
-
-
-
-
-
-
-
+; Packet Constants
 Packet_Size					equ 	6
 
 ; Network Packet Offsets
@@ -270,9 +240,38 @@ EndOfNodes	dword	EndOfNodes
 currentPacket 	BYTE 	Packet_Size dup(0)
 
 
+; Operating Variables
+system_time		word	0
+flag_Echo		BYTE	0
+
+; Operating Stats
+NewPackets			word	0
+GeneratedPackets	word	0
+TotalPackets		word	0
+ActivePackets		word	1
+ReceivedPackets		word	0
+TotalHops			word	0
+TotalTime			word	0
+AverageHops			word	0
+MaxHops				byte 	6
+
+
 .code
 main PROC
 
+	; Setup the initial packet
+	mov eax, OFFSET currentPacket
+	mov Packet_Destination[eax], 'D'
+	mov Packet_Origin[eax], 'A'
+	mov Packet_Sender[eax], 'A'
+	mov Packet_TimeToLive[eax], 6
+	mov Packet_TimeReceived[eax], 0
+
+	; Copy it into the transmit queue of the origin
+	mov edi, OFFSET Node_A
+	call PushIntoQueue
+
+	; Start the node at the initial node of the network
 	mov edi, offset Network
 
 MainLoop:
@@ -315,6 +314,7 @@ StepToNextNode:
 	mul cl									; Multiply the number of connections by the size of connections
 	add edi, Node_FixedSize					; Move past the Fixed Size portion of the Node
 	add edi, eax							; Move past the Connections portion of the Node
+
 	; Check if we've processed all nodes
 	cmp edi, EndOfNodes
 	jl MainLoop
@@ -422,97 +422,6 @@ QueueEmpty:
 	pop eax
 	mov CF, 1
 	ret
-	
-	
-	
-	
-	
-	
-;read Input file
-mov edx, offset PromptInputFile
-mov ecx, sizeof PromptInputFile
-call WriteString
-
-mov edx, offset FileName
-mov ecx, sizeof FileName
-call ReadString 
-
-;open input file
-mov edx, offset FileName
-call OpenInputFile
-mov InFileHandle, eax
-cmp eax,INVALID_HANDLE_VALUE
-je InFileError
-
-;Read OUT File
-mov edx,offset PromptOutFile
-mov ecx, sizeof PromptOutFile
-call WriteString
-
-mov edx, offset FileName
-mov ecx, sizeof FileName
-Call ReadString
-
-;open out file
-mov edx, offset FileName
-call CreateOutputFile
-mov OutFileHandle,eax
-cmp eax, INVALID_HANDLE_VALUE
-je OutFileError
-
-
-;Read from InFile
-ReadWriteLoop:
-mov eax,InFileHandle
-mov edx,offset FileBuffer
-mov ecx,FileBufferSize
-Call ReadFromFile
-jc Read Error
-mov BytesRead,eax
-cmp eax,o
-jle doneloop
-move FileBuffer[eax],null
-	
-	:write to out file
-	mov eax,OutFileHandle
-	mov edx, offset FileBuffer
-	mov ecx BytesRead
-	call WriteTofile
-	cmp eax,0
-	je WriteError
-	jmp ReadWriteLoop
-	DoneLoop:
-	jmp CloseFiles
-	
-	ReadError:
-	mov edx, Offest FileRaedMessage
-	mov ecx, sizeof FileReadMessage
-	callWriteString
-	call crlf
-	jmp CloseFiles
-	
-	CloseFiles:
-	mov eax,InFileHandle
-	Call closefile
-	mov eax, OutFileHandle
-	call closefile
-	jmp Quit
-	
-	OutFileError:
-	mov edx,offset FileErrorMessage
-	mov ecx, sizeof FileErrorMessage
-	call WriteString
-	call crlf
-	mov eax, InFileHandle
-	call closefile
-	jmp Quit
-	
-	InFileError:
-	mov edx, offset FileErrorMessage
-	mov ecx,sizeof FileErrorMessage
-	call WriteString
-	call crlf
-	jmp Quit
 	
 
 ; Quit the program

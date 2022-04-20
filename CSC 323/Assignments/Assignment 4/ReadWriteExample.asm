@@ -54,8 +54,6 @@ main PROC
     mov inputFileHandle, eax
     cmp eax, INVALID_HANDLE_VALUE
     je ErrorOpenFile
-    
-    call Crlf
 
     ; Get the output file name
     mov edx, OFFSET msg_PromptOutputFile
@@ -96,8 +94,7 @@ ReadWriteLoop:
     je ErrorWriteFile
     jmp ReadWriteLoop
 
-
-
+; Close the files and exit the program
 EndReadWriteLoop:
     mov eax, inputFileHandle
     call CloseFile
@@ -105,30 +102,31 @@ EndReadWriteLoop:
     call Closefile
     jmp Quit
 
-
-
+; There was an error opening the file
 ErrorOpenFile:
     mov edx, OFFSET msg_FileError
     mov ecx, SIZEOF msg_FileError
     call WriteString
     call Crlf
-    jmp Quit
+    jmp EndReadWriteLoop
 
+; There was an error reading from the file
 ErrorReadFile:
     mov edx, OFFSET msg_FileReadError
     mov ecx, SIZEOF msg_FileReadError
     call WriteString
     call Crlf
-    jmp Quit
+    jmp EndReadWriteLoop
 
+; There was an error writing to the file
 ErrorWriteFile:
     mov edx, OFFSET msg_FileWriteError
     mov ecx, SIZEOF msg_FileWriteError
     call WriteString
     call Crlf
-    jmp Quit
+    jmp EndReadWriteLoop
 
-
+; Exit the program
 Quit:
 	exit
 
