@@ -266,6 +266,8 @@ Node_F		byte	'F'				; Name
 
 EndOfNodes	dword	EndOfNodes
 
+; Temp Variables for operation
+currentPacket 	BYTE 	Packet_Size dup(0)
 
 
 .code
@@ -283,12 +285,14 @@ MainLoop:
 
 	mov ebx, 0								; Init connection counter
 
+
 ; Process a connection
 ConnectionLoop:
 	; Point to the Connection to process
 	mov eax, Node_ConnectionSize			; Get the size of a connection
 	mul bl									; Multiply by connection index
 	mov esi, Node_FixedSize[edi+eax]		; Get the connection address
+
 	; Move node name into message
 	mov edx, offset msg_CurrentConnection	; Get the message address
 	mov ecx, sizeof msg_CurrentConnection	; Get the message size
@@ -296,10 +300,12 @@ ConnectionLoop:
 	mov ConnectionPositionOffset[edx], al	; Move the name into the message
 	Call WriteString						; Print the name of the connection
 	Call Crlf
+
 	; Process the next connection
 	inc ebx
 	cmp bl, Node_Connections[edi]			; Check if we've processed all connections
 	jl ConnectionLoop
+
 
 ; Step to the Next Node
 StepToNextNode:
@@ -313,81 +319,110 @@ StepToNextNode:
 	cmp edi, EndOfNodes
 	jl MainLoop
 	jmp Quit
+
+
+; Increments the queue pointer in EAX, and wraps to start of queue
+IncrementQueuePointer:
+	; Increment the pointer to the next position
+	add eax, Packet_Size
+
+	; Find the end of the queue
+	push ebx
+	mov ebx, Node_QueueAddress[edi]
+	add ebx, Queue_Size
 	
+	; Compare the pointer to the end of the queue
+	cmp eax, ebx
+	jl EndIncrementQueuePointer
+	mov eax, Node_QueueAddress
+
+EndIncrementQueuePointer:
+	pop ebx
+	ret
 	
-TransmitQueue:
-	;beginning
-	mov edx, OFFSET Network 				;pointer node
-	mov ebx, Node_QueueAddress[edx]				;start of queue
+
+; Current node is in register edi
+; Current packet is stored in currentPacket
+PushIntoQueue:
+	push eax
+	mov eax, Node_InPointer[edi]	; Input Pointer for the Node's Queue
 	
-	;end
-	mov edx, OFFSET Network				;pointer node	
-	mov ebx, Node_QueueAdress[edx]			;start of queue
-	add ebx, Queue_Size				;size of queue
+	; Check if the queue has space available
+	call IncrementQueuePointer
+	cmp Node_InPointer[edi], Node_OutPointer[edi]
+	je QueueFull
+
+	; Reset the pointer to the input pointer
+	mov eax, Node_InPointer[edi]	; Input Pointer for the Node's Queue
+
+	; Copy the packet into the queue
+	push edi
+	push esi
+	push ecx
+	mov esi, OFFSET currentPacket
+	mov edi, eax
+	mov ecx, Packet_Size
+	cld
+	REP MOVSB
+	pop ecx
+	pop esi
+	pop edi
+
+	; Move the InPointer to the next part of the queue
+	call IncrementQueuePointer
+	mov Node_InPointer[edi], eax
+
+	; Set the carry flag to 0, as the operation was performed successfully, then return
+	mov CF, 0
+	pop eax
+	ret
+
+; If the queue is full, set the carry flag to 1 and do not perform any operation
+QueueFull:
+	mov CF, 1
+	pop eax
+	ret
+
+
+; Current Node is in EDI
+PopFromQueue:
+	push eax
+	mov eax, Node_OutPointer[edi]
+
+	; Check if the Queue is Empty
+	push ebx
+	mov ebx, Node_InPointer[edi]
+	cmp eax, ebx
+	pop ebx
+	je QueueEmpty
+
+	; Copy the packet at the Out position of the queue to the currentPacket
+	push esi
+	push edi
+	push ecx
+	mov esi, eax
+	mov edi, OFFSET currentPacket
+	mov ecx, Packet_Size
+	cld
+	REP MOVSB
+	pop ecx
+	pop edi
+	pop esi
+
+	; Move the out pointer to the next position in the queue
+	call IncrementQueuePointer
+
+	; Set the carry flag to 0 for successful operation, then return
+	pop eax
+	mov CF, 0
+	ret
+
+; If the queue is empty, set the carry flag to 1
+QueueEmpty:
+	pop eax
+	mov CF, 1
+	ret
 	
-		
-	mov edx, OFFSET Network				;get node pointer
-	mov eax, Node_InPointer[edx]			;get in pointer
-	mov ebx, Node_OutPointer[edx]			;get out pointer
-	cmp eax, ebx					;compare in and out
-	je Get2
-	
-	;PUT Data
-	cld 
-	mov esi, OFFSET msg_CurrentNode				;message address in esi
-	mov edi, Node_InPointerOFFSET[edx]			;in pointer to esi
-	mov ecx, PacketSize					; number of bytes to move
-	rep movsb
-	mov eax,Node_InPointer[edx]     			; update
-	add eax, PacketSize
-	
-	mov ebx, Node_QueueAddress[edx]				;check if we went past the end of queue
-	add ebx, QueueSize
-	cmp eax,ebx
-	jl Put 1
-	
-	mov eax,Node_QueueAddress[edx]			;make it circular
-	Put1:
-	mov Node_InPointerOFFSET[ebx],eax              	;update
-	mov eax, Node_InPointerOFFSET[edx]
-	add eax, PacketSize
-	sub eax Node_QueueAddress[edx]			; normalize the offset
-	mov ebx, Node_OutPointerOFFSET[edx]
-	sub eax, Node_QueueAddress[edx]			; subtract base address
-	
-	cmp eax,ebx					; compare in and out 
-	je Put2						;queue full
-	
-	;get data
-	cld 
-	mov esi,Node_OutPointerOFFSET[edx]
-	mov edi, OFFSET msg_CurrentNode	
-	mov ecx, PacketSize
-	rep movsb
-	mov eax, Node_OutPointer					;update
-	add eax, PacketSize
-	
-	
-	mov ebx, Node_QueueAddress[edx]				;calculate end of queue
-	add ebx,QueueSize
-	cmp eax,ebx
-	jl Get1
-	
-	mov eax,Node_QueueAddress[edx]					;make it circular
-	Get1:
-	mov Node_OutPointerOFFSET[edx],eax
-	
-	
-PutIt:
-	nop
-	
-	
-	
-	
-	
-	
-GetIt:
-	nop
 	
 	
 	
