@@ -37,6 +37,12 @@ NodePositionOffset		equ		sizeof msg_CurrentNode-2
 msg_CurrentConnection	byte	ascii_Tab, "Connection:  ", 0
 ConnectionPositionOffset equ	sizeof msg_CurrentConnection-2
 
+msg_SourceNode			byte	"Source Node:  ", 0
+msg_DestinationNode		byte	"Destination Node:  ", 0
+msg_TimeToLive			byte	"Time to Live:  ", 0
+msg_EchoOn				byte	"Echo On: True", 0, 0
+msg_EchoOff				byte	"Echo On: False", 0, 0
+
 msg_EnqueuePacket		byte	"Adding packet to transmit queue of Node  .", 0
 msgEnqueueOffset		equ		sizeof msg_EnqueuePacket-3
 
@@ -253,8 +259,8 @@ EndOfNodes	dword	EndOfNodes
 
 ; Temp Variables for operation
 currentPacket 	byte 	Packet_Size dup(0)
-outputMessage	byte	100 dup(0)
-system_time		word	0
+outputMessage	byte	500 dup(0)
+system_time		dword	0
 intString		byte	4 dup(ascii_Zero), 0
 flag_Echo		byte	0
 
@@ -299,12 +305,73 @@ main PROC
 	; Copy it into the transmit queue of the origin
 	mov edi, OFFSET Node_A
 	call PushIntoQueue
-	call PushIntoQueue
+
+	; Print out the initial information
+	call PrintInfo
 
 	; Start the node at the initial node of the network
 	mov edi, offset Network
 	jmp MainLoop
 
+
+; Print out the initial packet information and program settings
+PrintInfo:
+	mov eax, OFFSET currentPacket
+
+	; Print out the Source Node
+	mov edx, OFFSET msg_SourceNode
+	mov ecx, SIZEOF msg_SourceNode
+	add edx, ecx
+	sub edx, 2
+	mov bl, byte ptr Packet_Origin[eax]
+	mov byte ptr [edx], bl
+	mov edx, OFFSET msg_SourceNode
+	mov esi, edx
+	mov edi, OFFSET outputMessage
+	REP MOVSB
+	call WriteMessageToOutput
+
+	; Print out the Destination Node
+	mov edx, OFFSET msg_DestinationNode
+	mov ecx, SIZEOF msg_DestinationNode
+	add edx, ecx
+	sub edx, 2
+	mov bl, byte ptr Packet_Destination[eax]
+	mov byte ptr [edx], bl
+	mov edx, OFFSET msg_DestinationNode
+	mov esi, edx
+	mov edi, OFFSET outputMessage
+	REP MOVSB
+	call WriteMessageToOutput
+
+	; Print out the time to live
+	mov edx, OFFSET msg_TimeToLive
+	mov ecx, SIZEOF msg_TimeToLive
+	add edx, ecx
+	sub edx, 2
+	mov bl, byte ptr Packet_TimeToLive[eax]
+	add bl, 48
+	mov byte ptr [edx], bl
+	mov edx, OFFSET msg_TimeToLive
+	mov esi, edx
+	mov edi, OFFSET outputMessage
+	REP MOVSB
+	call WriteMessageToOutput
+
+	; Print out the echo information
+	mov esi, OFFSET msg_EchoOn
+	mov ecx, SIZEOF msg_EchoOn
+	cmp flag_Echo, 0
+	jne PrintEchoOn
+	mov esi, OFFSET msg_EchoOff
+	mov esi, OFFSET msg_EchoOff
+PrintEchoOn:
+	mov edi, OFFSET outputMessage
+	REP MOVSB
+	call writeMessageToOutput
+
+	; Return
+	ret 
 
 ; Open the input and output files
 OpenFiles:
@@ -415,9 +482,9 @@ IncrementQueuePointer:
 	add eax, Packet_Size
 
 	; Find the end of the queue
-	push ebx
+	push eax
 	mov ebx, Node_QueueAddress[edi]
-	add ebx, Queue_Size
+	add ebx, Queue_Size*Packet_Size
 	
 	; Compare the pointer to the end of the queue
 	cmp eax, ebx
@@ -435,11 +502,11 @@ PushIntoQueue:
 	push eax
 	push ebx
 	mov bl, Node_Name[edi]
-
+	
+	; Log message for adding packet to Node's queue
 	push esi
 	push edi
 	push ecx
-	; Log message for adding packet to Node's queue
 	mov esi, OFFSET msg_EnqueuePacket
 	mov byte ptr msgEnqueueOffset[esi], bl
 	mov ecx, SIZEOF msg_EnqueuePacket
@@ -447,16 +514,14 @@ PushIntoQueue:
 	cld
 	REP MOVSB
 	call WriteMessageToOutput
-
 	pop ecx
 	pop edi
 	pop esi
 	pop ebx
 
-
-	mov eax, Node_InPointer[edi]	; Input Pointer for the Node's Queue
 	
 	; Check if the queue has space available
+	mov eax, Node_InPointer[edi]				; Input Pointer for the Node's Queue
 	call IncrementQueuePointer
 	push ebx
 	mov ebx, Node_OutPointer[edi]
@@ -588,27 +653,32 @@ WriteMessageToOutput:
 ; Convert an integer to a string
 ;	integer stored in eax
 IntToString:
+	push eax
 	push ebx
 	push ecx
 	push edx
-	mov ecx, OFFSET intString
-	add ecx, 4
+	push edi
+	mov eax, system_time
+	mov edi, OFFSET intString
+	add edi, 3
 	mov ebx, 10
 
 IntToStringLoop:
 	cdq
 	div ebx
 	add edx, 48
-	mov [ecx], edx
-	dec ecx
+	mov [edi], dl
+	dec edi
 	cmp eax, 0
-	jne EndIntToStringLoop
+	je EndIntToStringLoop
 	jmp IntToStringLoop
 
 EndIntToStringLoop:
+	pop edi
 	pop edx
 	pop ecx
 	pop ebx
+	pop eax
 	ret
 
 
