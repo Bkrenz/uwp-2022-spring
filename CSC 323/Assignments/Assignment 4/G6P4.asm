@@ -14,16 +14,31 @@ INCLUDE Irvine32.inc
 
 ; ASCII Equivalents
 ascii_Tab	equ 9
+ascii_Zero	equ 48
 
 ; Output Strings
 msg_Details				byte	"Welcome to the Operating System Simulator.", 0
 msg_GetInput			byte	">> ", 0
 msg_Quit				byte	"Exiting...", 0
 
+msg_InputFileName		byte	"Enter input file name: ", 0
+msg_OutputFileName		byte	"Enter output file name: ", 0
+msg_SystemTime			byte	"[0000] ", 0
+msg_FileOpen			byte	"Opening file.", 0
+msg_FileOpenSuccess		byte	"File open successful.", 0
+msg_FileOpenError		byte	"File open error.", 0
+msg_FileClose			byte	"Closing file.", 0
+msg_FileCloseSuccess	byte	"File close successful.", 0
+msg_FileCloseError		byte	"File close error.", 0
+
 msg_CurrentNode			byte	"Node:  ", 0
-NodePositionOffset		equ sizeof msg_CurrentNode-2
+NodePositionOffset		equ		sizeof msg_CurrentNode-2
+
 msg_CurrentConnection	byte	ascii_Tab, "Connection:  ", 0
-ConnectionPositionOffset equ sizeof msg_CurrentConnection-2
+ConnectionPositionOffset equ	sizeof msg_CurrentConnection-2
+
+msg_EnqueuePacket		byte	"Adding packet to transmit queue of Node  .", 0
+msgEnqueueOffset		equ		sizeof msg_EnqueuePacket-3
 
 ; Packet Constants
 Packet_Size					equ 	6
@@ -237,12 +252,23 @@ Node_F		byte	'F'				; Name
 EndOfNodes	dword	EndOfNodes
 
 ; Temp Variables for operation
-currentPacket 	BYTE 	Packet_Size dup(0)
-
-
-; Operating Variables
+currentPacket 	byte 	Packet_Size dup(0)
+outputMessage	byte	100 dup(0)
 system_time		word	0
-flag_Echo		BYTE	0
+intString		byte	4 dup(ascii_Zero), 0
+flag_Echo		byte	0
+
+; File IO Vars
+bufferSize			equ		81
+fileBufferSize		equ		100
+NULL				equ		0
+inputFileHandle		dword	?
+outputFileHandle	dword	?
+fileName			byte	bufferSize dup(0)
+fileBuffer			byte	fileBufferSize	dup(0)
+					byte	0
+bytesRead			dword	0
+fileCrlf			byte	13, 10
 
 ; Operating Stats
 NewPackets			word	0
@@ -261,19 +287,81 @@ main PROC
 
 	; Setup the initial packet
 	mov eax, OFFSET currentPacket
-	mov Packet_Destination[eax], 'D'
-	mov Packet_Origin[eax], 'A'
-	mov Packet_Sender[eax], 'A'
-	mov Packet_TimeToLive[eax], 6
-	mov Packet_TimeReceived[eax], 0
+	mov byte ptr Packet_Destination[eax], 'D'
+	mov byte ptr Packet_Origin[eax], 'A'
+	mov byte ptr Packet_Sender[eax], 'A'
+	mov byte ptr Packet_TimeToLive[eax], 6
+	mov word ptr Packet_TimeReceived[eax], 0
+
+	; Open the input and output files
+	call OpenFiles
 
 	; Copy it into the transmit queue of the origin
 	mov edi, OFFSET Node_A
 	call PushIntoQueue
+	call PushIntoQueue
 
 	; Start the node at the initial node of the network
 	mov edi, offset Network
+	jmp MainLoop
 
+
+; Open the input and output files
+OpenFiles:
+	push eax
+	push ecx
+	push edx
+
+	; Get the input file name
+    mov edx, OFFSET msg_InputFileName
+    mov ecx, SIZEOF msg_InputFileName
+    call WriteString
+    mov edx, OFFSET fileName
+    mov ecx, SIZEOF fileName
+    call ReadString
+
+    ; Open the Input File
+    mov edx, OFFSET fileName
+    call OpenInputFile
+    mov inputFileHandle, eax
+    cmp eax, INVALID_HANDLE_VALUE
+    je ErrorOpenFile
+
+    ; Get the output file name
+    mov edx, OFFSET msg_OutputFileName
+    mov ecx, SIZEOF msg_OutputFileName
+    call WriteString
+    mov edx, OFFSET fileName
+    mov ecx, SIZEOF fileName
+    call ReadString
+
+    ; Open the Output File
+    mov edx, OFFSET fileName
+    call CreateOutputFile
+    mov outputFileHandle, eax
+    cmp eax, INVALID_HANDLE_VALUE
+    je ErrorOpenFile
+
+	; Successful file opening
+	pop edx
+	pop ecx
+	pop eax
+	ret
+
+; There was an error opening the file
+ErrorOpenFile:
+	; Copy Error Message
+    mov esi, OFFSET msg_FileOpenError
+    mov edi, OFFSET outputMessage
+	mov ecx, SIZEOF msg_FileOpenError
+	cld
+	REP MOVSB
+	; Write out the error message
+    call WriteMessageToOutput
+    call Crlf
+    jmp Quit
+
+; The main loop of the program
 MainLoop:
 	mov edx, offset msg_CurrentNode			; Get the message address
 	mov ecx, sizeof msg_CurrentNode			; Get the message size
@@ -334,7 +422,7 @@ IncrementQueuePointer:
 	; Compare the pointer to the end of the queue
 	cmp eax, ebx
 	jl EndIncrementQueuePointer
-	mov eax, Node_QueueAddress
+	mov eax, Node_QueueAddress[edi]
 
 EndIncrementQueuePointer:
 	pop ebx
@@ -345,11 +433,35 @@ EndIncrementQueuePointer:
 ; Current packet is stored in currentPacket
 PushIntoQueue:
 	push eax
+	push ebx
+	mov bl, Node_Name[edi]
+
+	push esi
+	push edi
+	push ecx
+	; Log message for adding packet to Node's queue
+	mov esi, OFFSET msg_EnqueuePacket
+	mov byte ptr msgEnqueueOffset[esi], bl
+	mov ecx, SIZEOF msg_EnqueuePacket
+	mov edi, OFFSET outputMessage
+	cld
+	REP MOVSB
+	call WriteMessageToOutput
+
+	pop ecx
+	pop edi
+	pop esi
+	pop ebx
+
+
 	mov eax, Node_InPointer[edi]	; Input Pointer for the Node's Queue
 	
 	; Check if the queue has space available
 	call IncrementQueuePointer
-	cmp Node_InPointer[edi], Node_OutPointer[edi]
+	push ebx
+	mov ebx, Node_OutPointer[edi]
+	cmp eax, ebx
+	pop ebx
 	je QueueFull
 
 	; Reset the pointer to the input pointer
@@ -373,13 +485,13 @@ PushIntoQueue:
 	mov Node_InPointer[edi], eax
 
 	; Set the carry flag to 0, as the operation was performed successfully, then return
-	mov CF, 0
+	CLC
 	pop eax
 	ret
 
 ; If the queue is full, set the carry flag to 1 and do not perform any operation
 QueueFull:
-	mov CF, 1
+	STC
 	pop eax
 	ret
 
@@ -414,15 +526,91 @@ PopFromQueue:
 
 	; Set the carry flag to 0 for successful operation, then return
 	pop eax
-	mov CF, 0
+	CLC
 	ret
 
 ; If the queue is empty, set the carry flag to 1
 QueueEmpty:
 	pop eax
-	mov CF, 1
+	STC
 	ret
+
+
+; Write a Message to the output
+;	Message stored in variable outputMessage
+WriteMessageToOutput:
+	push eax
+	push edx
+	push ecx
+
+	; Write the system time out to the console
+	mov edx, OFFSET msg_SystemTime				; Get the System Time message "[0000]"
+	mov eax, systemTime							; Get the current system time
+	call IntToString							; Convert the integer in eax to a String in edx, size in ecx
+
+	; Copy the int string to the system time message
+	inc edx										; Move the edx pointer back a couple bytes to fit the new string
+	mov esi, OFFSET intString
+	mov edi, edx
+	mov ecx, 4
+	REP MOVSB									; Copy the int into the message to output
+
+	; Move the start of edx back to the beginning of the system time message
+	dec edx
+	mov ecx, SIZEOF msg_SystemTime
+
+	; Get the file to write to
+	mov eax, outputFileHandle
+	call WriteString
+	call WriteToFile
 	
+	; Write the given message in outputMessage to the console
+	mov eax, outputFileHandle
+	mov edx, OFFSET outputMessage
+	mov ecx, SIZEOF outputMessage
+	call WriteString
+	call WriteToFile
+	
+	; Add new lines
+	call Crlf
+	mov edx, OFFSET fileCrlf
+	mov ecx, 2
+	mov eax, outputFileHandle
+	call WriteToFile
+
+	; Return
+	pop ecx
+	pop edx
+	pop eax
+	ret
+
+
+; Convert an integer to a string
+;	integer stored in eax
+IntToString:
+	push ebx
+	push ecx
+	push edx
+	mov ecx, OFFSET intString
+	add ecx, 4
+	mov ebx, 10
+
+IntToStringLoop:
+	cdq
+	div ebx
+	add edx, 48
+	mov [ecx], edx
+	dec ecx
+	cmp eax, 0
+	jne EndIntToStringLoop
+	jmp IntToStringLoop
+
+EndIntToStringLoop:
+	pop edx
+	pop ecx
+	pop ebx
+	ret
+
 
 ; Quit the program
 Quit:
