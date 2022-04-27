@@ -31,11 +31,14 @@ msg_FileClose			byte	"Closing file.", 0
 msg_FileCloseSuccess	byte	"File close successful.", 0
 msg_FileCloseError		byte	"File close error.", 0
 
-msg_CurrentNode			byte	"Node:  ", 0
+msg_CurrentNode			byte	"Processing Node:  ", 0
 NodePositionOffset		equ		sizeof msg_CurrentNode-2
 
-msg_CurrentConnection	byte	ascii_Tab, "Connection:  ", 0
-ConnectionPositionOffset equ	sizeof msg_CurrentConnection-2
+msg_TransmitConnection	byte	ascii_Tab, "Transmitting Packet to:  ", 0
+msgTransmitOffset equ	sizeof	msg_TransmitConnection-2
+
+msg_ReceiveConnection	byte	ascii_Tab, "Receiving Packet from:  ", 0
+msgReceiveOffset equ	sizeof	msg_ReceiveConnection-2
 
 msg_SourceNode			byte	"Source Node:  ", 0
 msg_DestinationNode		byte	"Destination Node:  ", 0
@@ -259,7 +262,9 @@ EndOfNodes	dword	EndOfNodes
 
 ; Temp Variables for operation
 currentPacket 	byte 	Packet_Size dup(0)
+currentNode		dword	0
 outputMessage	byte	500 dup(0)
+emptyString		byte	500 dup(0)
 system_time		dword	0
 intString		byte	4 dup(ascii_Zero), 0
 flag_Echo		byte	0
@@ -311,6 +316,7 @@ main PROC
 
 	; Start the node at the initial node of the network
 	mov edi, offset Network
+	mov currentNode, edi
 	jmp MainLoop
 
 
@@ -430,15 +436,23 @@ ErrorOpenFile:
 
 ; The main loop of the program
 MainLoop:
-	mov edx, offset msg_CurrentNode			; Get the message address
-	mov ecx, sizeof msg_CurrentNode			; Get the message size
-	mov al, Node_Name[edi]					; Move the Node name into the message
-	mov NodePositionOffset[edx], al
-	call WriteString						; Write the message
-	call Crlf
+	; Process the transmit procedure for each Node
+	mov edx, OFFSET Network
+	mov currentNode, edx
+	call TransmitLoop
 
-	mov ebx, 0								; Init connection counter
+	; Increment the System Time
+	inc system_time
 
+	; Process the receive procedure for each Node
+	mov edx, OFFSET Network
+	mov currentNode, edx
+	call ReceiveLoop
+
+	; If there are still packets alive, continue looping
+	cmp ActivePackets, 0
+	jg MainLoop
+	jmp Quit
 
 ; Process a connection
 ConnectionLoop:
@@ -448,10 +462,10 @@ ConnectionLoop:
 	mov esi, Node_FixedSize[edi+eax]		; Get the connection address
 
 	; Move node name into message
-	mov edx, offset msg_CurrentConnection	; Get the message address
-	mov ecx, sizeof msg_CurrentConnection	; Get the message size
+	mov edx, offset msg_TransmitConnection	; Get the message address
+	mov ecx, sizeof msg_TransmitConnection	; Get the message size
 	mov al, Node_Name[esi]					; Get the name of the node
-	mov ConnectionPositionOffset[edx], al	; Move the name into the message
+	mov msgTransmitOffset[edx], al	; Move the name into the message
 	Call WriteString						; Print the name of the connection
 	Call Crlf
 
@@ -463,17 +477,176 @@ ConnectionLoop:
 
 ; Step to the Next Node
 StepToNextNode:
+	jmp Quit
+
+
+; Process each node's transmit queues
+TransmitLoop:
+	; Print out the name of the node being processed
+	mov edx, currentNode
+	mov esi, OFFSET msg_CurrentNode
+	mov bl, byte ptr Node_Name[edx]
+	mov byte ptr NodePositionOffset[esi], bl
+	mov edi, OFFSET outputMessage
+	mov ecx, SIZEOF msg_CurrentNode
+	REP MOVSB
+	call WriteMessageToOutput
+
+	; Pop a packet from the queue
+	call PopFromQueue
+	jc TransmitLoopNextNode
+
+	; For each connection of this node, copy the current packet into the transmit buffer
+	mov ecx, 0
+TransmitConnectionLoop:
+	mov edx, CurrentNode
+	cmp cl, byte ptr Node_Connections[edx]
+	je TransmitLoopNextNode
+	
+	mov edx, currentNode
+	; Get the current connection
+	mov eax, ecx
+	push ecx
+	mov ebx, Node_ConnectionSize
+	mul ebx
+	mov edx, currentNode
+	add eax, Node_FixedSize
+	add eax, edx
+	mov ebx, [eax]
+
+	; Get the connection name
+	mov esi, OFFSET msg_TransmitConnection
+	mov al, byte ptr Node_Name[ebx]
+	mov byte ptr msgTransmitOffset[esi], al
+	mov edi, OFFSET outputMessage
+	mov ecx, SIZEOF msg_TransmitConnection
+	CLD
+	REP MOVSB
+	call WriteMessageToOutput
+
+	; Update the packet info
+	mov esi, OFFSET currentPacket
+	mov ebx, 0
+	mov bl, byte ptr Packet_Sender[esi]
+	mov byte ptr Packet_Sender[esi], al
+	dec Packet_TimeToLive[esi]
+
+	; If the packet is still alive
+	cmp Packet_TimeToLive[esi], 0
+	je TransmitNextConnection
+
+	; If Echo is turned off, don't send to the previous sender
+	cmp flag_Echo, 0
+	jne TransmitEchoOn
+	cmp bl, al
+	je TransmitNextConnection
+TransmitEchoOn:
+
+	; Copy to the transmit buffer
+	add eax, 4
+	mov edi, eax
+	mov esi, OFFSET currentPacket
+	mov ecx, Packet_Size
+	CLD
+	REP MOVSB
+
+	; Update Packet Counts
+	inc Packets
+
+TransmitNextConnection:
+	; Increment the connection count and loop again
+	pop ecx
+	inc ecx
+	jmp TransmitConnectionLoop
+
+TransmitLoopNextNode:
+	push ecx
+	mov ecx, 0
+	mov edx, CurrentNode
 	mov eax, 0								; clear register eax
-	mov al, Node_Connections[edi]			; Get the number of Connections
+	mov al, Node_Connections[edx]			; Get the number of Connections
 	mov cl, Node_ConnectionSize				; Get the size of a connection
 	mul cl									; Multiply the number of connections by the size of connections
-	add edi, Node_FixedSize					; Move past the Fixed Size portion of the Node
-	add edi, eax							; Move past the Connections portion of the Node
+	add edx, Node_FixedSize					; Move past the Fixed Size portion of the Node
+	add edx, eax							; Move past the Connections portion of the Node
+	mov currentNode, edx
+	pop ecx
 
 	; Check if we've processed all nodes
-	cmp edi, EndOfNodes
-	jl MainLoop
-	jmp Quit
+	cmp edx, EndOfNodes
+	jl TransmitLoop
+	
+TransmitLoopEnd:
+	ret
+
+
+ReceiveLoop:
+	; Print out the name of the node being processed
+	mov edx, currentNode
+	mov esi, OFFSET msg_CurrentNode
+	mov bl, byte ptr Node_Name[edx]
+	mov byte ptr NodePositionOffset[esi], bl
+	mov edi, OFFSET outputMessage
+	mov ecx, SIZEOF msg_CurrentNode
+	REP MOVSB
+	call WriteMessageToOutput
+
+	; For each connection of this node, copy the current packet into the transmit buffer
+	mov ecx, 0
+ReceiveConnectionLoop:
+	mov edx, CurrentNode
+	cmp cl, byte ptr Node_Connections[edx]
+	je TransmitLoopNextNode
+	
+	mov edx, currentNode
+	; Get the current connection
+	mov eax, ecx
+	push ecx
+	mov ebx, Node_ConnectionSize
+	mul ebx
+	mov edx, currentNode
+	add eax, Node_FixedSize
+	add eax, edx
+	mov ebx, [eax]
+
+	; Check if there is a packet to receive
+	
+	; Get the connection name
+	mov esi, OFFSET msg_ReceiveConnection
+	mov al, byte ptr Node_Name[ebx]
+	mov byte ptr msgReceiveOffset[esi], al
+	mov edi, OFFSET outputMessage
+	mov ecx, SIZEOF msg_ReceiveConnection
+	CLD
+	REP MOVSB
+	call WriteMessageToOutput
+
+
+
+	; Go to next connection
+	pop ecx
+	inc ecx
+	jmp ReceiveConnectionLoop
+
+ReceiveLoopNextNode:
+	push ecx
+	mov ecx, 0
+	mov edx, CurrentNode
+	mov eax, 0								; clear register eax
+	mov al, Node_Connections[edx]			; Get the number of Connections
+	mov cl, Node_ConnectionSize				; Get the size of a connection
+	mul cl									; Multiply the number of connections by the size of connections
+	add edx, Node_FixedSize					; Move past the Fixed Size portion of the Node
+	add edx, eax							; Move past the Connections portion of the Node
+	mov currentNode, edx
+	pop ecx
+
+	; Check if we've processed all nodes
+	cmp edx, EndOfNodes
+	jl ReceiveLoop
+	
+ReceiveLoopEnd:
+	ret	
 
 
 ; Increments the queue pointer in EAX, and wraps to start of queue
@@ -561,9 +734,12 @@ QueueFull:
 	ret
 
 
-; Current Node is in EDI
+; Pops a packet from the queue
+;	If the queue is empty, sets the carry flag
 PopFromQueue:
 	push eax
+	push edi
+	mov edi, currentNode
 	mov eax, Node_OutPointer[edi]
 
 	; Check if the Queue is Empty
@@ -590,12 +766,14 @@ PopFromQueue:
 	call IncrementQueuePointer
 
 	; Set the carry flag to 0 for successful operation, then return
+	pop edi
 	pop eax
 	CLC
 	ret
 
 ; If the queue is empty, set the carry flag to 1
 QueueEmpty:
+	pop edi
 	pop eax
 	STC
 	ret
@@ -642,6 +820,17 @@ WriteMessageToOutput:
 	mov ecx, 2
 	mov eax, outputFileHandle
 	call WriteToFile
+
+	; Clear the output message buffer
+	push esi
+	push edi
+	mov esi, OFFSET emptyString
+	mov edi, OFFSET outputMessage
+	mov ecx, SIZEOF emptyString
+	CLD
+	REP MOVSB
+	pop edi
+	pop esi
 
 	; Return
 	pop ecx
