@@ -21,6 +21,17 @@ msg_Details				byte	"Welcome to the Operating System Simulator.", 0
 msg_GetInput			byte	">> ", 0
 msg_Quit				byte	"Exiting...", 0
 
+msg_Time				byte" The total time of the simulation was",0
+msg_TPackets				byte" The total ammount of packets generated was",0
+msg_TReceived				byte" The total ammount of packets received was",0
+msg_AvgTime				byte" The average time to Reach a destnation was",0
+msg_AvgHops				byte" The average ammount of hops was",0
+msg_PercentMade				byte" The percentage of packets that reached their destantion was",0
+
+FpintTime				word,?
+FpintHops				word,?
+FpintMessages				word,?
+
 msg_InputFileName		byte	"Enter input file name: ", 0
 msg_OutputFileName		byte	"Enter output file name: ", 0
 msg_SystemTime			byte	"[0000] ", 0
@@ -58,7 +69,6 @@ Packet_Sender				equ		1
 Packet_Origin				equ		2
 Packet_TimeToLive			equ		3
 Packet_TimeReceived			equ		4
-
 
 ; Node A Buffers
 A_XMT_B			label	byte
@@ -295,6 +305,7 @@ MaxHops				byte 	6
 
 .code
 main PROC
+;FINT
 
 	; Setup the initial packet
 	mov eax, OFFSET currentPacket
@@ -869,6 +880,71 @@ EndIntToStringLoop:
 	pop ebx
 	pop eax
 	ret
+
+
+
+
+;AverageTime:
+	;FILD TotalTime
+	;FILD Received
+	;FDIV
+	;FST, FpintTime
+	;ret
+;AverageHops:
+;FILD 
+
+
+
+
+
+
+
+
+
+PrintStats:
+	mov edx,OFFSET msg_Time
+	call WriteString
+	call Crlf
+	mov eax, system_time
+	call WriteInt
+	call Crlf
+
+	mov edx,OFFSET msg_Tpackets
+	call WriteString
+	call Crlf
+	mov eax,TotalPackets
+	call WriteInt
+	call Crlf
+
+	mov edx , OFFSET msg_TReceived
+	WriteString
+	mov eax, ReceivedPackets
+	call WriteInt
+	call Crlf
+
+	mov edx, OFFSET msg_AvgTime
+	call WriteString
+	call crlf
+	mov eax, FpintTime
+	call WriteFloat
+	call Crlf
+
+	mov edx, OFFSET msg_AvgHops
+	call WriteString
+	call Crlf
+	mov eax FpintHops
+	call WriteFloat
+	call Crlf
+
+	mov edx, OFFSET msg_PercentMade
+	call WriteInt
+	call Crlf
+	mov eax, FpintMessages
+	call WriteFloat
+	Call crlf
+
+
+
 
 
 ; Quit the program
